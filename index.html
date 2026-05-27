@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WK 2026 Poule</title>
+<title>WC 2026 Pool</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -245,21 +245,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 <div id="app-loading">
   <div class="logo">🏆</div>
   <div class="spinner"></div>
-  <p>Verbinden met database…</p>
+  <p>Connecting to database…</p>
 </div>
 
 <!-- Top nav -->
 <nav class="topnav">
   <div class="topnav-inner">
     <div class="nav-logo" id="logo-click">
-      <span>🏆</span> WK 2026 Poule
+      <span>🏆</span> WC 2026 Pool
     </div>
     <div class="nav-links">
       <button class="nav-btn active" onclick="nav('info')"          id="nav-info">Info</button>
-      <button class="nav-btn"        onclick="nav('schedule')"      id="nav-schedule">Speelschema</button>
-      <button class="nav-btn"        onclick="nav('countries')"     id="nav-countries">Landen</button>
-      <button class="nav-btn"        onclick="nav('picks')"         id="nav-picks">Voorspellingen</button>
-      <button class="nav-btn"        onclick="nav('leaderboard')"   id="nav-leaderboard">Klassement</button>
+      <button class="nav-btn"        onclick="nav('schedule')"      id="nav-schedule">Schedule</button>
+      <button class="nav-btn"        onclick="nav('countries')"     id="nav-countries">Countries</button>
+      <button class="nav-btn"        onclick="nav('picks')"         id="nav-picks">Picks</button>
+      <button class="nav-btn"        onclick="nav('leaderboard')"   id="nav-leaderboard">Leaderboard</button>
     </div>
     <div class="nav-user" id="nav-user" style="display:none" onclick="nav('info')">
       <div class="nav-avatar" id="nav-avatar"></div>
@@ -271,10 +271,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 <!-- Mobile nav -->
 <nav class="mobile-nav">
   <button class="mobile-nav-btn active" onclick="nav('info')"        id="mnav-info"><span class="icon">ℹ️</span>Info</button>
-  <button class="mobile-nav-btn"        onclick="nav('schedule')"    id="mnav-schedule"><span class="icon">📅</span>Schema</button>
-  <button class="mobile-nav-btn"        onclick="nav('countries')"   id="mnav-countries"><span class="icon">🌍</span>Landen</button>
+  <button class="mobile-nav-btn"        onclick="nav('schedule')"    id="mnav-schedule"><span class="icon">📅</span>Schedule</button>
+  <button class="mobile-nav-btn"        onclick="nav('countries')"   id="mnav-countries"><span class="icon">🌍</span>Countries</button>
   <button class="mobile-nav-btn"        onclick="nav('picks')"       id="mnav-picks"><span class="icon">✏️</span>Picks</button>
-  <button class="mobile-nav-btn"        onclick="nav('leaderboard')" id="mnav-leaderboard"><span class="icon">🏅</span>Stand</button>
+  <button class="mobile-nav-btn"        onclick="nav('leaderboard')" id="mnav-leaderboard"><span class="icon">🏅</span>Standings</button>
 </nav>
 
 <div class="admin-hint" id="admin-hint"></div>
@@ -284,140 +284,144 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 <!-- ── INFO ── -->
 <div id="view-info" class="view active">
   <div class="hero">
-    <h1>🏆 WK 2026 Poule</h1>
-    <p>Voorspel alle wedstrijden, scoor punten en ga de strijd aan met je collega's en vrienden.</p>
+    <h1>🏆 WC 2026 Pool</h1>
+    <p>Predict all matches, score points and compete with your colleagues and friends.</p>
     <div class="hero-meta">
-      <div class="hero-badge gold">11 juni – 19 juli 2026</div>
+      <div class="hero-badge gold">June 11 – July 19, 2026</div>
       <div class="hero-badge">🇺🇸 USA · 🇨🇦 Canada · 🇲🇽 Mexico</div>
-      <div class="hero-badge">48 landen · 104 wedstrijden</div>
+      <div class="hero-badge">48 teams · 104 matches</div>
     </div>
   </div>
 
   <div id="countdown-wrap" class="countdown-wrap" style="display:none">
     <div>
-      <div class="countdown-label">Deadline voor voorspellingen</div>
+      <div class="countdown-label">Deadline for predictions</div>
       <div class="countdown-timer" id="countdown-timer">--:--:--</div>
     </div>
-    <div style="font-size:13px;opacity:.85">11 juni 21:00 NL</div>
+    <div style="font-size:13px;opacity:.85">June 11, 9:00 PM (NL time)</div>
   </div>
 
   <div id="home-login" class="card">
-    <div class="card-title">Doe mee</div>
+    <div class="card-title">Join in</div>
     <div class="field">
-      <label>Jouw naam</label>
-      <input id="inp-name" placeholder="Bijv. Jan de Vries" autocomplete="off" oninput="currentUser=this.value.trim()">
+      <label>Your name</label>
+      <input id="inp-name" placeholder="E.g. John Smith" autocomplete="off" oninput="currentUser=this.value.trim()">
     </div>
     <div class="field">
-      <label>Poolcode <span style="color:var(--faint);font-weight:400">(optioneel — vraag aan de organisator)</span></label>
+      <label>Pool code <span style="color:var(--faint);font-weight:400">(optional — ask the organiser)</span></label>
       <div style="display:flex;gap:8px">
-        <input id="inp-join" placeholder="Bijv. WERK123" style="flex:1">
+        <input id="inp-join" placeholder="E.g. WORK123" style="flex:1">
         <button class="btn" onclick="joinPool(document.getElementById('inp-join').value)">→</button>
       </div>
     </div>
-    <button class="btn btn-primary btn-block" onclick="enterApp()">Verder →</button>
+    <button class="btn btn-primary btn-block" onclick="enterApp()">Continue →</button>
   </div>
 
   <div id="home-dash" style="display:none">
     <div class="stats-row">
-      <div class="stat-card"><div class="stat-val" id="dash-pts">0</div><div class="stat-label">Punten</div></div>
-      <div class="stat-card"><div class="stat-val" id="dash-rank">—</div><div class="stat-label">Positie</div></div>
-      <div class="stat-card"><div class="stat-val" id="dash-pct">0%</div><div class="stat-label">Ingevuld</div></div>
+      <div class="stat-card"><div class="stat-val" id="dash-pts">0</div><div class="stat-label">Points</div></div>
+      <div class="stat-card"><div class="stat-val" id="dash-rank">—</div><div class="stat-label">Position</div></div>
+      <div class="stat-card"><div class="stat-val" id="dash-pct">0%</div><div class="stat-label">Filled</div></div>
     </div>
     <div id="dash-pools"></div>
-    <button class="btn btn-sm" onclick="switchUser()" style="margin-top:.75rem">↔ Wissel gebruiker</button>
+    <button class="btn btn-sm" onclick="switchUser()" style="margin-top:.75rem">↔ Switch user</button>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem" class="how-grid">
     <div class="card card-sm">
-      <div class="card-title">Hoe werkt het?</div>
+      <div class="card-title">How it works</div>
       <div class="steps" style="grid-template-columns:1fr;gap:.75rem;margin-bottom:0">
         <div class="step" style="padding:.75rem">
           <div class="step-num">1</div>
-          <div class="step-title">Maak een account</div>
-          <div class="step-text">Voer je naam in en sluit je aan bij een pool.</div>
+          <div class="step-title">Enter your name</div>
+          <div class="step-text">Type your name and optionally join a pool with a code from the organiser.</div>
         </div>
         <div class="step" style="padding:.75rem">
           <div class="step-num">2</div>
-          <div class="step-title">Vul je voorspellingen in</div>
-          <div class="step-text">Groepsfase, knock-out rondes en bonusvragen. Deadline: 11 juni 21:00.</div>
+          <div class="step-title">Fill in your predictions</div>
+          <div class="step-text">Group stage, knockout rounds and bonus questions. Deadline: June 11, 9:00 PM.</div>
         </div>
         <div class="step" style="padding:.75rem">
           <div class="step-num">3</div>
-          <div class="step-title">Volg de stand</div>
-          <div class="step-text">Punten worden automatisch bijgehouden zodra de admin uitslagen invoert.</div>
+          <div class="step-title">Follow the standings</div>
+          <div class="step-text">Points are automatically updated when the admin enters results.</div>
         </div>
       </div>
     </div>
     <div class="card card-sm">
-      <div class="card-title">Puntensysteem</div>
+      <div class="card-title">Points system</div>
       <div class="pts-grid" style="grid-template-columns:1fr">
-        <div class="pts-item"><div class="pts-badge blue">+3</div><div class="pts-text">Juiste winnaar</div></div>
-        <div class="pts-item"><div class="pts-badge blue">+1</div><div class="pts-text">Juist aantal goals thuis</div></div>
-        <div class="pts-item"><div class="pts-badge blue">+1</div><div class="pts-text">Juist aantal goals uit</div></div>
-        <div class="pts-item"><div class="pts-badge blue">+5</div><div class="pts-text">Exacte score (vervangt +3)</div></div>
-        <div class="pts-item"><div class="pts-badge red">+10</div><div class="pts-text">Juist team in R16</div></div>
-        <div class="pts-item"><div class="pts-badge red">+20</div><div class="pts-text">Juist team in QF</div></div>
-        <div class="pts-item"><div class="pts-badge red">+30</div><div class="pts-text">Juist team in SF</div></div>
-        <div class="pts-item"><div class="pts-badge red">+40</div><div class="pts-text">Juiste finalist</div></div>
-        <div class="pts-item"><div class="pts-badge gold">+20</div><div class="pts-text">Juiste toernooi-winnaar</div></div>
-        <div class="pts-item"><div class="pts-badge gold">+10</div><div class="pts-text">Bonusvraag correct</div></div>
+        <div class="pts-item"><div class="pts-badge blue">+3</div><div class="pts-text">Correct winner</div></div>
+        <div class="pts-item"><div class="pts-badge blue">+1</div><div class="pts-text">Correct home score</div></div>
+        <div class="pts-item"><div class="pts-badge blue">+1</div><div class="pts-text">Correct away score</div></div>
+        <div class="pts-item"><div class="pts-badge blue">+5</div><div class="pts-text">Exact score (replaces +3)</div></div>
+        <div class="pts-item"><div class="pts-badge red">+10</div><div class="pts-text">Correct team in R16</div></div>
+        <div class="pts-item"><div class="pts-badge red">+20</div><div class="pts-text">Correct team in QF</div></div>
+        <div class="pts-item"><div class="pts-badge red">+30</div><div class="pts-text">Correct team in SF</div></div>
+        <div class="pts-item"><div class="pts-badge red">+40</div><div class="pts-text">Correct finalist</div></div>
+        <div class="pts-item"><div class="pts-badge gold">+20</div><div class="pts-text">Correct tournament winner</div></div>
+        <div class="pts-item"><div class="pts-badge gold">+10</div><div class="pts-text">Correct bonus answer</div></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ── SPEELSCHEMA ── -->
+<!-- ── SCHEDULE ── -->
 <div id="view-schedule" class="view">
   <div class="page-hd">
-    <div class="page-title">Speelschema</div>
-    <div class="page-sub">Alle 72 groepswedstrijden · tijden in Nederlandse tijd (CEST)</div>
+    <div class="page-title">Schedule</div>
+    <div class="page-sub">All 72 group stage matches · times in Dutch time (CEST)</div>
   </div>
   <div class="sched-tabs" id="sched-tabs"></div>
   <div id="sched-content"></div>
 </div>
 
-<!-- ── LANDEN ── -->
+<!-- ── COUNTRIES ── -->
 <div id="view-countries" class="view">
   <div class="page-hd">
-    <div class="page-title">Landen</div>
-    <div class="page-sub">48 landen verdeeld over 12 groepen</div>
+    <div class="page-title">Countries</div>
+    <div class="page-sub">48 countries in 12 groups</div>
+  </div>
+  <div style="margin-bottom:1rem">
+    <input id="country-search" placeholder="Search countries…" oninput="renderCountries()"
+      style="width:100%;max-width:320px;padding:9px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);font-family:inherit;font-size:14px;color:var(--text)">
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem" id="group-filter-btns"></div>
   <div class="countries-grid" id="countries-grid"></div>
 </div>
 
-<!-- ── VOORSPELLINGEN ── -->
+<!-- ── PICKS ── -->
 <div id="view-picks" class="view">
   <div class="page-hd">
-    <div class="page-title">Voorspellingen</div>
-    <div class="page-sub">Vul je picks in voor de groepsfase, knock-out rondes en bonusvragen.</div>
+    <div class="page-title">Picks</div>
+    <div class="page-sub">Fill in your predictions for the group stage, knockout rounds and bonus questions.</div>
   </div>
   <div class="progress-wrap"><div class="progress-fill" id="picks-bar" style="width:0%"></div></div>
-  <div id="deadline-warning" class="deadline-warning" style="display:none">🔒 De deadline is verstreken. Voorspellingen kunnen niet meer worden gewijzigd.</div>
+  <div id="deadline-warning" class="deadline-warning" style="display:none">🔒 The deadline has passed. Predictions can no longer be changed.</div>
   <div class="sub-nav">
-    <button class="sub-btn active" onclick="pickTab('group')"    id="ptab-group">Groepsfase</button>
-    <button class="sub-btn"        onclick="pickTab('knockout')" id="ptab-knockout">Knock-out</button>
+    <button class="sub-btn active" onclick="pickTab('group')"    id="ptab-group">Group stage</button>
+    <button class="sub-btn"        onclick="pickTab('knockout')" id="ptab-knockout">Knockout</button>
     <button class="sub-btn"        onclick="pickTab('bonus')"    id="ptab-bonus">Bonus</button>
   </div>
   <div id="ptab-group-cnt"><div class="group-grid" id="group-cards"></div></div>
   <div id="ptab-knockout-cnt" style="display:none"><div id="ko-rounds"></div></div>
   <div id="ptab-bonus-cnt"    style="display:none"><div class="card" id="bonus-card"></div></div>
   <div class="save-bar">
-    <button class="btn btn-primary" onclick="savePicks()" id="save-picks-btn">💾 Opslaan</button>
-    <div class="saved-ok" id="picks-saved">✓ Opgeslagen</div>
+    <button class="btn btn-primary" onclick="savePicks()" id="save-picks-btn">💾 Save</button>
+    <div class="saved-ok" id="picks-saved">✓ Saved</div>
   </div>
 </div>
 
-<!-- ── KLASSEMENT ── -->
+<!-- ── LEADERBOARD ── -->
 <div id="view-leaderboard" class="view">
   <div class="page-hd">
-    <div class="page-title">Klassement</div>
-    <div class="page-sub">Live stand op basis van door de admin ingevoerde uitslagen.</div>
+    <div class="page-title">Leaderboard</div>
+    <div class="page-sub">Live standings based on results entered by the admin.</div>
   </div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
     <div></div>
     <select id="lb-filter" onchange="renderLeaderboard()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)">
-      <option value="all">Alle deelnemers</option>
+      <option value="all">All participants</option>
     </select>
   </div>
   <div class="card" id="lb-card" style="padding:1.5rem"></div>
@@ -427,35 +431,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 <div id="view-admin" class="view">
   <div class="page-hd">
     <div class="page-title">⚙️ Admin</div>
-    <div class="page-sub">Voer uitslagen in en beheer pools. Punten worden automatisch herberekend.</div>
+    <div class="page-sub">Enter results and manage pools. Points are automatically recalculated.</div>
   </div>
   <div id="admin-lock">
     <div class="card" style="max-width:420px">
-      <div class="card-title">Admin toegang</div>
-      <div class="info-box">ℹ️ Dit gedeelte is alleen voor de organisator.</div>
-      <div class="field"><label>Wachtwoord</label><input type="password" id="admin-pw" placeholder="Wachtwoord…" onkeydown="if(event.key==='Enter')unlockAdmin()"></div>
-      <button class="btn btn-navy" onclick="unlockAdmin()">🔓 Ontgrendelen</button>
+      <div class="card-title">Admin access</div>
+      <div class="info-box">ℹ️ This section is for the organiser only.</div>
+      <div class="field"><label>Password</label><input type="password" id="admin-pw" placeholder="Password…" onkeydown="if(event.key==='Enter')unlockAdmin()"></div>
+      <button class="btn btn-navy" onclick="unlockAdmin()">🔓 Unlock</button>
     </div>
   </div>
   <div id="admin-panel" style="display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
-      <span class="pill pill-green">✓ Admin ontgrendeld</span>
-      <button class="btn btn-sm" onclick="lockAdmin()">🔒 Vergrendelen</button>
+      <span class="pill pill-green">✓ Admin unlocked</span>
+      <button class="btn btn-sm" onclick="lockAdmin()">🔒 Lock</button>
     </div>
     <div class="sub-nav">
-      <button class="sub-btn active" onclick="adminTab('results')" id="atab-results">Uitslagen</button>
-      <button class="sub-btn"        onclick="adminTab('ko')"      id="atab-ko">Knock-out</button>
+      <button class="sub-btn active" onclick="adminTab('results')" id="atab-results">Results</button>
+      <button class="sub-btn"        onclick="adminTab('ko')"      id="atab-ko">Knockout</button>
       <button class="sub-btn"        onclick="adminTab('bonus')"   id="atab-bonus">Bonus</button>
       <button class="sub-btn"        onclick="adminTab('pools')"   id="atab-pools">Pools</button>
     </div>
     <div id="atab-results-cnt"><div class="group-grid" id="admin-result-cards"></div></div>
-    <div id="atab-ko-cnt"      style="display:none"><div id="admin-ko-rounds"></div></div>
+    <div id="atab-ko-cnt" style="display:none">
+      <div style="margin-bottom:1.25rem;padding:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:.5rem">Auto-fill qualified teams</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Calculates top 2 per group + 8 best 3rd-place teams from entered results and fills the R16 slots.</p>
+        <button class="btn btn-navy" onclick="autoFillQualified()">⚡ Auto-fill R16 from standings</button>
+      </div>
+      <div id="admin-ko-rounds"></div>
+    </div>
     <div id="atab-bonus-cnt"   style="display:none"><div class="card" id="admin-bonus-card"></div></div>
     <div id="atab-pools-cnt"   style="display:none">
       <div class="card" style="max-width:500px;margin-bottom:1rem">
-        <div class="card-title">Nieuwe pool aanmaken</div>
-        <div class="field"><label>Naam</label><input id="admin-pool-name" placeholder="Bijv. Werk 2026"></div>
-        <div class="field"><label>Icoon</label>
+        <div class="card-title">Create new pool</div>
+        <div class="field"><label>Name</label><input id="admin-pool-name" placeholder="E.g. Work 2026"></div>
+        <div class="field"><label>Icon</label>
           <div class="icon-picker" id="admin-icon-picker">
             <div class="icon-opt selected" onclick="pickAdminIcon(this,'💼')">💼</div>
             <div class="icon-opt" onclick="pickAdminIcon(this,'👨‍👩‍👧‍👦')">👨‍👩‍👧‍👦</div>
@@ -465,13 +476,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
             <div class="icon-opt" onclick="pickAdminIcon(this,'⭐')">⭐</div>
           </div>
         </div>
-        <button class="btn btn-primary" onclick="adminCreatePool()">+ Aanmaken</button>
+        <button class="btn btn-primary" onclick="adminCreatePool()">+ Create</button>
       </div>
       <div id="admin-pools-list"></div>
     </div>
     <div class="save-bar" id="admin-save-bar">
-      <button class="btn btn-primary" onclick="saveAdmin()">💾 Opslaan & herberekenen</button>
-      <div class="saved-ok" id="admin-saved">✓ Opgeslagen</div>
+      <button class="btn btn-primary" onclick="saveAdmin()">💾 Save &amp; recalculate</button>
+      <div class="saved-ok" id="admin-saved">✓ Saved</div>
     </div>
   </div>
 </div>
@@ -594,72 +605,72 @@ const ALL_TEAMS = [...new Set(SCHEDULE.flatMap(m => [m.h, m.a]))].sort();
 
 // ─── COUNTRIES ────────────────────────────────────────────────────────────────
 const COUNTRIES = {
-  'Mexico':             {flag:'🇲🇽',ranking:15,players:['Santiago Giménez','Hirving Lozano','Edson Álvarez']},
-  'South Africa':       {flag:'🇿🇦',ranking:67,players:['Percy Tau','Themba Zwane','Ronwen Williams']},
-  'South Korea':        {flag:'🇰🇷',ranking:22,players:['Son Heung-min','Lee Jae-sung','Hwang Hee-chan']},
-  'Czechia':            {flag:'🇨🇿',ranking:41,players:['Patrik Schick','Tomáš Souček','Vladimír Coufal']},
-  'Canada':             {flag:'🇨🇦',ranking:35,players:['Alphonso Davies','Jonathan David','Cyle Larin']},
-  'Bosnia-Herzegovina': {flag:'🇧🇦',ranking:44,players:['Edin Džeko','Sead Kolašinac','Ermedin Demirović']},
-  'Qatar':              {flag:'🇶🇦',ranking:58,players:['Akram Afif','Almoez Ali','Hassan Al-Haydos']},
-  'Switzerland':        {flag:'🇨🇭',ranking:19,players:['Granit Xhaka','Yann Sommer','Ruben Vargas']},
-  'Brazil':             {flag:'🇧🇷',ranking:5, players:['Vinicius Jr.','Rodrygo','Casemiro']},
-  'Morocco':            {flag:'🇲🇦',ranking:14,players:['Achraf Hakimi','Hakim Ziyech','Youssef En-Nesyri']},
-  'Haiti':              {flag:'🇭🇹',ranking:88,players:['Frantzdy Pierrot','Nazon','Zacharie Guerrier']},
-  'Scotland':           {flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',ranking:38,players:['Andy Robertson','Scott McTominay','Kieran Tierney']},
-  'USA':                {flag:'🇺🇸',ranking:12,players:['Christian Pulisic','Tyler Adams','Weston McKennie']},
-  'Paraguay':           {flag:'🇵🇾',ranking:50,players:['Miguel Almirón','Gustavo Gómez','Robert Rojas']},
-  'Australia':          {flag:'🇦🇺',ranking:23,players:['Mathew Ryan','Harry Souttar','Martin Boyle']},
-  'Turkey':             {flag:'🇹🇷',ranking:28,players:['Hakan Çalhanoğlu','Arda Güler','Kerem Aktürkoğlu']},
-  'Germany':            {flag:'🇩🇪',ranking:9, players:['Florian Wirtz','Jamal Musiala','Kai Havertz']},
-  'Curaçao':            {flag:'🇨🇼',ranking:94,players:['Leandro Bacuna','Rubio Rubin','Cuco Martina']},
-  'Ivory Coast':        {flag:'🇨🇮',ranking:40,players:['Sébastien Haller','Franck Kessié','Nicolas Pépé']},
-  'Ecuador':            {flag:'🇪🇨',ranking:32,players:['Moisés Caicedo','Enner Valencia','Michael Estrada']},
-  'Netherlands':        {flag:'🇳🇱',ranking:7, players:['Virgil van Dijk','Cody Gakpo','Frenkie de Jong']},
-  'Japan':              {flag:'🇯🇵',ranking:18,players:['Takumi Minamino','Daichi Kamada','Wataru Endō']},
-  'Sweden':             {flag:'🇸🇪',ranking:30,players:['Alexander Isak','Dejan Kulusevski','Viktor Gyökeres']},
-  'Tunisia':            {flag:'🇹🇳',ranking:36,players:['Wahbi Khazri','Youssef Msakni','Ellyes Skhiri']},
-  'Belgium':            {flag:'🇧🇪',ranking:4, players:['Kevin De Bruyne','Romelu Lukaku','Youri Tielemans']},
-  'Egypt':              {flag:'🇪🇬',ranking:35,players:['Mohamed Salah','Omar Marmoush','Ahmed El-Shenawy']},
-  'Iran':               {flag:'🇮🇷',ranking:22,players:['Sardar Azmoun','Mehdi Taremi','Ali Gholizadeh']},
-  'New Zealand':        {flag:'🇳🇿',ranking:95,players:['Chris Wood','Michael Boxall','Liberato Cacace']},
-  'Spain':              {flag:'🇪🇸',ranking:8, players:['Pedri','Gavi','Álvaro Morata']},
-  'Cape Verde':         {flag:'🇨🇻',ranking:65,players:['Ryan Mendes','Garry Rodrigues','Nanu']},
-  'Saudi Arabia':       {flag:'🇸🇦',ranking:55,players:['Salem Al-Dawsari','Mohammed Al-Owais','Saud Abdulhamid']},
-  'Uruguay':            {flag:'🇺🇾',ranking:17,players:['Federico Valverde','Darwin Núñez','Rodrigo Bentancur']},
-  'France':             {flag:'🇫🇷',ranking:2, players:['Kylian Mbappé','Antoine Griezmann','Aurélien Tchouaméni']},
-  'Senegal':            {flag:'🇸🇳',ranking:20,players:['Sadio Mané','Ismaïla Sarr','Édouard Mendy']},
-  'Iraq':               {flag:'🇮🇶',ranking:60,players:['Mohanad Ali','Amjad Attwan','Bashar Resan']},
-  'Norway':             {flag:'🇳🇴',ranking:25,players:['Erling Haaland','Martin Ødegaard','Alexander Sørloth']},
-  'Argentina':          {flag:'🇦🇷',ranking:1, players:['Lionel Messi','Julián Álvarez','Rodrigo De Paul']},
-  'Algeria':            {flag:'🇩🇿',ranking:50,players:['Riyad Mahrez','Islam Slimani','Yacine Brahimi']},
-  'Austria':            {flag:'🇦🇹',ranking:26,players:['Marcel Sabitzer','Marko Arnautovic','David Alaba']},
-  'Jordan':             {flag:'🇯🇴',ranking:85,players:['Musa Al-Taamari','Yazan Al-Naimat','Baha Faisal']},
-  'Portugal':           {flag:'🇵🇹',ranking:6, players:['Cristiano Ronaldo','Bruno Fernandes','Rafael Leão']},
-  'DR Congo':           {flag:'🇨🇩',ranking:55,players:['Cédric Bakambu','Chancel Mbemba','Arthur Masuaku']},
-  'Uzbekistan':         {flag:'🇺🇿',ranking:80,players:['Eldor Shomurodov','Abbosbek Fayzullayev','Dostonbek Khamdamov']},
-  'Colombia':           {flag:'🇨🇴',ranking:15,players:['Luis Díaz','James Rodríguez','Jhon Córdoba']},
-  'England':            {flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',ranking:3, players:['Jude Bellingham','Harry Kane','Phil Foden']},
-  'Croatia':            {flag:'🇭🇷',ranking:10,players:['Luka Modrić','Mateo Kovačić','Marcelo Brozović']},
-  'Ghana':              {flag:'🇬🇭',ranking:55,players:['Jordan Ayew','Thomas Partey','Mohammed Kudus']},
-  'Panama':             {flag:'🇵🇦',ranking:75,players:['Ismael Díaz','Adalberto Carrasquilla','Roderick Miller']},
+  'Argentina':          {flag:'🇦🇷',ranking:1, players:[{name:'Lionel Messi',stars:3},{name:'Julián Álvarez',stars:2},{name:'Rodrigo De Paul',stars:1}]},
+  'France':             {flag:'🇫🇷',ranking:2, players:[{name:'Kylian Mbappé',stars:3},{name:'Antoine Griezmann',stars:2},{name:'Aurélien Tchouaméni',stars:1}]},
+  'England':            {flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',ranking:3, players:[{name:'Jude Bellingham',stars:3},{name:'Harry Kane',stars:2},{name:'Phil Foden',stars:1}]},
+  'Belgium':            {flag:'🇧🇪',ranking:4, players:[{name:'Kevin De Bruyne',stars:3},{name:'Romelu Lukaku',stars:2},{name:'Youri Tielemans',stars:1}]},
+  'Brazil':             {flag:'🇧🇷',ranking:5, players:[{name:'Vinicius Jr.',stars:3},{name:'Rodrygo',stars:2},{name:'Casemiro',stars:1}]},
+  'Portugal':           {flag:'🇵🇹',ranking:6, players:[{name:'Cristiano Ronaldo',stars:3},{name:'Bruno Fernandes',stars:2},{name:'Rafael Leão',stars:1}]},
+  'Netherlands':        {flag:'🇳🇱',ranking:7, players:[{name:'Virgil van Dijk',stars:3},{name:'Cody Gakpo',stars:2},{name:'Frenkie de Jong',stars:1}]},
+  'Spain':              {flag:'🇪🇸',ranking:8, players:[{name:'Pedri',stars:3},{name:'Gavi',stars:2},{name:'Álvaro Morata',stars:1}]},
+  'Germany':            {flag:'🇩🇪',ranking:9, players:[{name:'Florian Wirtz',stars:3},{name:'Jamal Musiala',stars:2},{name:'Kai Havertz',stars:1}]},
+  'Croatia':            {flag:'🇭🇷',ranking:10,players:[{name:'Luka Modrić',stars:3},{name:'Mateo Kovačić',stars:2},{name:'Marcelo Brozović',stars:1}]},
+  'Colombia':           {flag:'🇨🇴',ranking:11,players:[{name:'Luis Díaz',stars:3},{name:'James Rodríguez',stars:2},{name:'Jhon Córdoba',stars:1}]},
+  'USA':                {flag:'🇺🇸',ranking:12,players:[{name:'Christian Pulisic',stars:3},{name:'Tyler Adams',stars:2},{name:'Weston McKennie',stars:1}]},
+  'Morocco':            {flag:'🇲🇦',ranking:13,players:[{name:'Achraf Hakimi',stars:3},{name:'Hakim Ziyech',stars:2},{name:'Youssef En-Nesyri',stars:1}]},
+  'Mexico':             {flag:'🇲🇽',ranking:14,players:[{name:'Santiago Giménez',stars:3},{name:'Hirving Lozano',stars:2},{name:'Edson Álvarez',stars:1}]},
+  'Switzerland':        {flag:'🇨🇭',ranking:15,players:[{name:'Granit Xhaka',stars:3},{name:'Yann Sommer',stars:2},{name:'Ruben Vargas',stars:1}]},
+  'Japan':              {flag:'🇯🇵',ranking:16,players:[{name:'Takumi Minamino',stars:3},{name:'Daichi Kamada',stars:2},{name:'Wataru Endō',stars:1}]},
+  'Uruguay':            {flag:'🇺🇾',ranking:17,players:[{name:'Federico Valverde',stars:3},{name:'Darwin Núñez',stars:2},{name:'Rodrigo Bentancur',stars:1}]},
+  'Senegal':            {flag:'🇸🇳',ranking:18,players:[{name:'Sadio Mané',stars:3},{name:'Ismaïla Sarr',stars:2},{name:'Édouard Mendy',stars:1}]},
+  'Turkey':             {flag:'🇹🇷',ranking:19,players:[{name:'Hakan Çalhanoğlu',stars:3},{name:'Arda Güler',stars:2},{name:'Kerem Aktürkoğlu',stars:1}]},
+  'Norway':             {flag:'🇳🇴',ranking:20,players:[{name:'Erling Haaland',stars:3},{name:'Martin Ødegaard',stars:2},{name:'Alexander Sørloth',stars:1}]},
+  'South Korea':        {flag:'🇰🇷',ranking:21,players:[{name:'Son Heung-min',stars:3},{name:'Lee Jae-sung',stars:2},{name:'Hwang Hee-chan',stars:1}]},
+  'Iran':               {flag:'🇮🇷',ranking:22,players:[{name:'Sardar Azmoun',stars:3},{name:'Mehdi Taremi',stars:2},{name:'Ali Gholizadeh',stars:1}]},
+  'Ecuador':            {flag:'🇪🇨',ranking:23,players:[{name:'Moisés Caicedo',stars:3},{name:'Enner Valencia',stars:2},{name:'Michael Estrada',stars:1}]},
+  'Austria':            {flag:'🇦🇹',ranking:24,players:[{name:'Marcel Sabitzer',stars:3},{name:'Marko Arnautovic',stars:2},{name:'David Alaba',stars:1}]},
+  'Australia':          {flag:'🇦🇺',ranking:25,players:[{name:'Mathew Ryan',stars:3},{name:'Harry Souttar',stars:2},{name:'Martin Boyle',stars:1}]},
+  'Algeria':            {flag:'🇩🇿',ranking:26,players:[{name:'Riyad Mahrez',stars:3},{name:'Islam Slimani',stars:2},{name:'Yacine Brahimi',stars:1}]},
+  'Sweden':             {flag:'🇸🇪',ranking:27,players:[{name:'Alexander Isak',stars:3},{name:'Dejan Kulusevski',stars:2},{name:'Viktor Gyökeres',stars:1}]},
+  'Scotland':           {flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',ranking:28,players:[{name:'Andy Robertson',stars:3},{name:'Scott McTominay',stars:2},{name:'Kieran Tierney',stars:1}]},
+  'Tunisia':            {flag:'🇹🇳',ranking:29,players:[{name:'Wahbi Khazri',stars:3},{name:'Youssef Msakni',stars:2},{name:'Ellyes Skhiri',stars:1}]},
+  'Ivory Coast':        {flag:'🇨🇮',ranking:30,players:[{name:'Sébastien Haller',stars:3},{name:'Franck Kessié',stars:2},{name:'Nicolas Pépé',stars:1}]},
+  'Egypt':              {flag:'🇪🇬',ranking:31,players:[{name:'Mohamed Salah',stars:3},{name:'Omar Marmoush',stars:2},{name:'Ahmed El-Shenawy',stars:1}]},
+  'Bosnia-Herzegovina': {flag:'🇧🇦',ranking:32,players:[{name:'Edin Džeko',stars:3},{name:'Sead Kolašinac',stars:2},{name:'Ermedin Demirović',stars:1}]},
+  'Czechia':            {flag:'🇨🇿',ranking:33,players:[{name:'Patrik Schick',stars:3},{name:'Tomáš Souček',stars:2},{name:'Vladimír Coufal',stars:1}]},
+  'Canada':             {flag:'🇨🇦',ranking:34,players:[{name:'Alphonso Davies',stars:3},{name:'Jonathan David',stars:2},{name:'Cyle Larin',stars:1}]},
+  'Paraguay':           {flag:'🇵🇾',ranking:35,players:[{name:'Miguel Almirón',stars:3},{name:'Gustavo Gómez',stars:2},{name:'Robert Rojas',stars:1}]},
+  'Saudi Arabia':       {flag:'🇸🇦',ranking:36,players:[{name:'Salem Al-Dawsari',stars:3},{name:'Mohammed Al-Owais',stars:2},{name:'Saud Abdulhamid',stars:1}]},
+  'Cape Verde':         {flag:'🇨🇻',ranking:37,players:[{name:'Ryan Mendes',stars:3},{name:'Garry Rodrigues',stars:2},{name:'Nanu',stars:1}]},
+  'Ghana':              {flag:'🇬🇭',ranking:38,players:[{name:'Jordan Ayew',stars:3},{name:'Thomas Partey',stars:2},{name:'Mohammed Kudus',stars:1}]},
+  'South Africa':       {flag:'🇿🇦',ranking:39,players:[{name:'Percy Tau',stars:3},{name:'Themba Zwane',stars:2},{name:'Ronwen Williams',stars:1}]},
+  'DR Congo':           {flag:'🇨🇩',ranking:40,players:[{name:'Cédric Bakambu',stars:3},{name:'Chancel Mbemba',stars:2},{name:'Arthur Masuaku',stars:1}]},
+  'Iraq':               {flag:'🇮🇶',ranking:41,players:[{name:'Mohanad Ali',stars:3},{name:'Amjad Attwan',stars:2},{name:'Bashar Resan',stars:1}]},
+  'Qatar':              {flag:'🇶🇦',ranking:42,players:[{name:'Akram Afif',stars:3},{name:'Almoez Ali',stars:2},{name:'Hassan Al-Haydos',stars:1}]},
+  'Jordan':             {flag:'🇯🇴',ranking:43,players:[{name:'Musa Al-Taamari',stars:3},{name:'Yazan Al-Naimat',stars:2},{name:'Baha Faisal',stars:1}]},
+  'Panama':             {flag:'🇵🇦',ranking:44,players:[{name:'Ismael Díaz',stars:3},{name:'Adalberto Carrasquilla',stars:2},{name:'Roderick Miller',stars:1}]},
+  'Haiti':              {flag:'🇭🇹',ranking:45,players:[{name:'Frantzdy Pierrot',stars:3},{name:'Nazon',stars:2},{name:'Zacharie Guerrier',stars:1}]},
+  'Uzbekistan':         {flag:'🇺🇿',ranking:46,players:[{name:'Eldor Shomurodov',stars:3},{name:'Abbosbek Fayzullayev',stars:2},{name:'Dostonbek Khamdamov',stars:1}]},
+  'Curaçao':            {flag:'🇨🇼',ranking:47,players:[{name:'Leandro Bacuna',stars:3},{name:'Rubio Rubin',stars:2},{name:'Cuco Martina',stars:1}]},
+  'New Zealand':        {flag:'🇳🇿',ranking:48,players:[{name:'Chris Wood',stars:3},{name:'Michael Boxall',stars:2},{name:'Liberato Cacace',stars:1}]},
 };
 
 // ─── KO ROUNDS ────────────────────────────────────────────────────────────────
 const KO_ROUNDS = [
-  {key:'r16',   label:'Round of 16',     slots:16, pts:10},
-  {key:'qf',    label:'Kwartfinales',    slots:8,  pts:20},
-  {key:'sf',    label:'Halve finales',   slots:4,  pts:30},
-  {key:'final', label:'Finalisten',      slots:2,  pts:40},
-  {key:'winner',label:'Toernooi-winnaar',slots:1,  pts:20},
+  {key:'r16',   label:'Round of 16',       slots:16, pts:10},
+  {key:'qf',    label:'Quarter-finals',    slots:8,  pts:20},
+  {key:'sf',    label:'Semi-finals',       slots:4,  pts:30},
+  {key:'final', label:'Finalists',         slots:2,  pts:40},
+  {key:'winner',label:'Tournament winner', slots:1,  pts:20},
 ];
 
 const BONUS = [
-  {key:'b1',label:'Welk land scoort de meeste goals in de groepsfase?',pts:10},
-  {key:'b2',label:'Totaal aantal goals in het toernooi? (±5 is goed)',pts:10,type:'number'},
-  {key:'b3',label:'Gouden Schoen — welke speler wint de topscorer?',pts:10},
-  {key:'b4',label:'Gaat de finale naar extra tijd of penalty\'s?',pts:10,opts:['Ja','Nee']},
-  {key:'b5',label:'Hoeveel rode kaarten in het toernooi? (±3 is goed)',pts:10,type:'number'},
-  {key:'b6',label:'Welk continent heeft de meeste teams in de halve finales?',pts:10,opts:['Europa','Zuid-Amerika','CONCACAF','Afrika','Azië/Oceanië']},
+  {key:'b1',label:'Which country scores the most goals in the group stage?',pts:10},
+  {key:'b2',label:'Total number of goals in the tournament? (±5 is correct)',pts:10,type:'number'},
+  {key:'b3',label:'Golden Boot — which player wins the top scorer award?',pts:10},
+  {key:'b4',label:'Does the final go to extra time or penalties?',pts:10,opts:['Yes','No']},
+  {key:'b5',label:'How many red cards in the tournament? (±3 is correct)',pts:10,type:'number'},
+  {key:'b6',label:'Which continent has the most teams in the semi-finals?',pts:10,opts:['Europe','South America','CONCACAF','Africa','Asia/Oceania']},
 ];
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -703,8 +714,8 @@ fetch('/api/config')
     document.getElementById('app-loading').innerHTML = `
       <div style="text-align:center;padding:2rem;max-width:340px">
         <div style="font-size:32px;margin-bottom:12px">⚠️</div>
-        <div style="font-size:15px;font-weight:600;color:white;margin-bottom:8px">Configuratie ontbreekt</div>
-        <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.6">Voeg de Firebase-omgevingsvariabelen toe via <strong style="color:white">Vercel → Project Settings → Environment Variables</strong> en herstart de deployment.</div>
+        <div style="font-size:15px;font-weight:600;color:white;margin-bottom:8px">Configuration missing</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.6">Add the Firebase environment variables via <strong style="color:white">Vercel → Project Settings → Environment Variables</strong> and redeploy.</div>
       </div>`;
   });
 
@@ -715,11 +726,11 @@ function isPastDeadline() { return new Date() >= DEADLINE; }
 
 function flag(team) { return (COUNTRIES[team] && COUNTRIES[team].flag) || '🏳️'; }
 
-const NL_DAYS  = ['zo','ma','di','wo','do','vr','za'];
-const NL_MONTHS= ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+const EN_DAYS  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const EN_MONTHS= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function fmtDate(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
-  return `${NL_DAYS[d.getDay()]} ${d.getDate()} ${NL_MONTHS[d.getMonth()]}`;
+  return `${EN_DAYS[d.getDay()]} ${d.getDate()} ${EN_MONTHS[d.getMonth()]}`;
 }
 
 const AVATAR_PALETTE = [
@@ -764,7 +775,7 @@ function updateDeadlineWarning() {
 // ─── NAVIGATION ───────────────────────────────────────────────────────────────
 const VIEWS = ['info','schedule','countries','picks','leaderboard','admin'];
 function nav(id) {
-  if (id==='picks' && !currentUser) { toast('Voer eerst je naam in.', true); nav('info'); return; }
+  if (id==='picks' && !currentUser) { toast('Please enter your name first.', true); nav('info'); return; }
   VIEWS.forEach(v => {
     document.getElementById('view-'+v).classList.toggle('active', v===id);
     const nb=document.getElementById('nav-'+v); if(nb) nb.classList.toggle('active', v===id);
@@ -784,7 +795,7 @@ document.getElementById('logo-click').addEventListener('click', () => {
   clearTimeout(_logoTimer);
   const hint=document.getElementById('admin-hint');
   if (_logoClicks>=5) { _logoClicks=0; nav('admin'); hint.textContent=''; hint.classList.remove('show'); return; }
-  hint.textContent=`${5-_logoClicks}x meer klikken voor admin`;
+  hint.textContent=`${5-_logoClicks} more click${5-_logoClicks===1?'':'s'} for admin`;
   hint.classList.add('show');
   _logoTimer=setTimeout(()=>{ _logoClicks=0; hint.classList.remove('show'); },3000);
 });
@@ -792,7 +803,7 @@ document.getElementById('logo-click').addEventListener('click', () => {
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 function enterApp() {
   const name = document.getElementById('inp-name').value.trim();
-  if (!name) { toast('Voer je naam in.', true); return; }
+  if (!name) { toast('Please enter your name.', true); return; }
   currentUser = name;
   if (!DB.players[currentUser]) DB.players[currentUser] = {scores:{},ko:{},bonus:{}};
   const code = document.getElementById('inp-join').value.trim().toUpperCase();
@@ -874,74 +885,95 @@ function updateDashboard() {
   const myPools=Object.values(DB.pools).filter(p=>p.members&&p.members.includes(currentUser));
   const sec=document.getElementById('dash-pools');
   sec.innerHTML = myPools.length
-    ? '<div style="margin:.75rem 0 .5rem;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Jouw pools</div>'
+    ? '<div style="margin:.75rem 0 .5rem;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Your pools</div>'
       + myPools.map(p=>`<span class="pill pill-blue" style="margin:0 4px 4px 0">${p.icon} ${p.name}</span>`).join('')
     : '';
 }
 
 // ─── SCHEDULE VIEW ────────────────────────────────────────────────────────────
 function renderSchedule(activeGroup='all') {
-  // Tabs
   const tabsEl = document.getElementById('sched-tabs');
   const groups  = ['all','A','B','C','D','E','F','G','H','I','J','K','L'];
   tabsEl.innerHTML = groups.map(g =>
-    `<button class="sched-tab${g===activeGroup?' active':''}" onclick="renderSchedule('${g}')">${g==='all'?'Alle groepen':'Groep '+g}</button>`
+    `<button class="sched-tab${g===activeGroup?' active':''}" onclick="renderSchedule('${g}')">${g==='all'?'All groups':'Group '+g}</button>`
   ).join('');
 
-  // Filter
-  const matches = activeGroup==='all' ? SCHEDULE : SCHEDULE.filter(m=>m.g===activeGroup);
-
-  // Group by date
-  const byDate = {};
-  matches.forEach(m => { if(!byDate[m.date]) byDate[m.date]=[]; byDate[m.date].push(m); });
-
   const cont = document.getElementById('sched-content'); cont.innerHTML='';
-  Object.keys(byDate).sort().forEach(date => {
-    const lbl=document.createElement('div'); lbl.className='match-day-label'; lbl.textContent=fmtDate(date);
-    cont.appendChild(lbl);
-    byDate[date].forEach(m => {
-      const card=document.createElement('div'); card.className='match-card';
-      card.innerHTML=`
-        <div class="match-card-head">
-          <span class="grp">Groep ${m.g}</span>
-          <span class="venue">📍 ${m.stadium}, ${m.city}</span>
-        </div>
-        <div class="match-row">
-          <div class="match-team"><span class="match-flag">${flag(m.h)}</span>${m.h}</div>
-          <div class="match-time"><div class="time">${m.time}</div><div class="date-small">NL-tijd</div></div>
-          <div class="match-team right">${m.a}<span class="match-flag">${flag(m.a)}</span></div>
-        </div>`;
-      cont.appendChild(card);
+
+  function renderMatchCard(m) {
+    const card=document.createElement('div'); card.className='match-card';
+    card.innerHTML=`
+      <div class="match-card-head">
+        <span class="grp">Group ${m.g}</span>
+        <span class="venue">📍 ${m.stadium}, ${m.city}</span>
+      </div>
+      <div class="match-row">
+        <div class="match-team"><span class="match-flag">${flag(m.h)}</span>${m.h}</div>
+        <div class="match-time"><div class="time">${m.time}</div><div class="date-small">NL time</div></div>
+        <div class="match-team right">${m.a}<span class="match-flag">${flag(m.a)}</span></div>
+      </div>`;
+    return card;
+  }
+
+  if (activeGroup==='all') {
+    ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(g => {
+      const hdr=document.createElement('div'); hdr.className='match-day-label';
+      hdr.textContent='Group '+g; cont.appendChild(hdr);
+      BY_GROUP[g].slice().sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time))
+        .forEach(m => cont.appendChild(renderMatchCard(m)));
     });
-  });
+  } else {
+    const byDate = {};
+    SCHEDULE.filter(m=>m.g===activeGroup).forEach(m => { if(!byDate[m.date]) byDate[m.date]=[]; byDate[m.date].push(m); });
+    Object.keys(byDate).sort().forEach(date => {
+      const lbl=document.createElement('div'); lbl.className='match-day-label'; lbl.textContent=fmtDate(date);
+      cont.appendChild(lbl);
+      byDate[date].forEach(m => cont.appendChild(renderMatchCard(m)));
+    });
+  }
 }
 
 // ─── COUNTRIES VIEW ───────────────────────────────────────────────────────────
-function renderCountries(filterGroup='all') {
+let _countriesGroup = 'all';
+function renderCountries(filterGroup) {
+  if (filterGroup !== undefined) _countriesGroup = filterGroup;
+  const query = (document.getElementById('country-search')?.value||'').trim().toLowerCase();
+
   const filterBtns = document.getElementById('group-filter-btns');
   const groups = ['all','A','B','C','D','E','F','G','H','I','J','K','L'];
   filterBtns.innerHTML = groups.map(g =>
-    `<button class="sched-tab${g===filterGroup?' active':''}" onclick="renderCountries('${g}')">${g==='all'?'Alle':g}</button>`
+    `<button class="sched-tab${g===_countriesGroup?' active':''}" onclick="renderCountries('${g}')">${g==='all'?'All':'Group '+g}</button>`
   ).join('');
 
   const grid=document.getElementById('countries-grid'); grid.innerHTML='';
   let teams = Object.keys(COUNTRIES).sort((a,b)=>(COUNTRIES[a].ranking||99)-(COUNTRIES[b].ranking||99));
-  if (filterGroup!=='all') teams=teams.filter(t=>WC_GROUPS[filterGroup]&&WC_GROUPS[filterGroup].includes(t));
+  if (_countriesGroup!=='all') teams=teams.filter(t=>WC_GROUPS[_countriesGroup]&&WC_GROUPS[_countriesGroup].includes(t));
+  if (query) teams=teams.filter(t=>t.toLowerCase().includes(query));
+
+  if (!teams.length) {
+    grid.innerHTML='<div style="color:var(--muted);font-size:14px;grid-column:1/-1">No countries found.</div>';
+    return;
+  }
 
   teams.forEach(team => {
     const c=COUNTRIES[team];
     const grp=Object.keys(WC_GROUPS).find(g=>WC_GROUPS[g].includes(team))||'?';
     const card=document.createElement('div'); card.className='country-card';
+    const starsHtml=c.players.map(p=>{
+      const filled='★'.repeat(p.stars), empty='☆'.repeat(3-p.stars);
+      return `<span style="display:flex;align-items:baseline;gap:5px;margin-bottom:3px">
+        <span style="color:var(--gold);letter-spacing:1px;font-size:13px">${filled}<span style="color:var(--faint)">${empty}</span></span>
+        <span style="font-size:12px;color:var(--muted)">${p.name}</span>
+      </span>`;
+    }).join('');
     card.innerHTML=`
       <div class="country-flag">${c.flag}</div>
       <div class="country-name">${team}</div>
       <div class="country-meta">
         <span class="rank-badge">FIFA #${c.ranking}</span>
-        <span class="group-badge">Groep ${grp}</span>
+        <span class="group-badge">Group ${grp}</span>
       </div>
-      <div class="country-players">
-        ${c.players.map(p=>`<span>⭐ ${p}</span>`).join('')}
-      </div>`;
+      <div class="country-players">${starsHtml}</div>`;
     grid.appendChild(card);
   });
 }
@@ -1000,7 +1032,7 @@ function renderKoRounds() {
     for(let i=0;i<r.slots;i++){
       const sel=document.createElement('select');
       sel.disabled=locked;
-      sel.innerHTML='<option value="">— kies land —</option>'+ALL_TEAMS.map(t=>`<option value="${t}"${picks[i]===t?' selected':''}>${flag(t)} ${t}</option>`).join('');
+      sel.innerHTML='<option value="">— select team —</option>'+ALL_TEAMS.map(t=>`<option value="${t}"${picks[i]===t?' selected':''}>${flag(t)} ${t}</option>`).join('');
       const idx=i,key=r.key;
       sel.onchange=function(){
         if(!DB.players[currentUser].ko) DB.players[currentUser].ko={};
@@ -1014,7 +1046,7 @@ function renderKoRounds() {
 }
 
 function renderBonusForm() {
-  const c=document.getElementById('bonus-card'); c.innerHTML='<div class="card-title">Bonusvragen</div>';
+  const c=document.getElementById('bonus-card'); c.innerHTML='<div class="card-title">Bonus questions</div>';
   const pd=DB.players[currentUser]||{bonus:{}};
   const locked=isPastDeadline();
   BONUS.forEach(q=>{
@@ -1022,12 +1054,12 @@ function renderBonusForm() {
     div.innerHTML=`<div class="bonus-q">${q.label}<span class="bonus-pts">+${q.pts} pts</span></div>`;
     if(q.opts){
       const sel=document.createElement('select'); sel.className='bonus-inp'; sel.disabled=locked;
-      sel.innerHTML='<option value="">— kies —</option>'+q.opts.map(o=>`<option value="${o}"${(pd.bonus&&pd.bonus[q.key])===o?' selected':''}>${o}</option>`).join('');
+      sel.innerHTML='<option value="">— choose —</option>'+q.opts.map(o=>`<option value="${o}"${(pd.bonus&&pd.bonus[q.key])===o?' selected':''}>${o}</option>`).join('');
       const k=q.key; sel.onchange=function(){DB.players[currentUser].bonus[k]=this.value;};
       div.appendChild(sel);
     } else {
       const inp=document.createElement('input'); inp.className='bonus-inp';
-      inp.type=q.type||'text'; inp.placeholder='Jouw antwoord…'; inp.disabled=locked;
+      inp.type=q.type||'text'; inp.placeholder='Your answer…'; inp.disabled=locked;
       inp.value=(pd.bonus&&pd.bonus[q.key])||'';
       const k=q.key; inp.onchange=function(){DB.players[currentUser].bonus[k]=this.value;};
       div.appendChild(inp);
@@ -1044,17 +1076,17 @@ function pickTab(tab) {
 }
 
 function savePicks() {
-  if(isPastDeadline()){toast('Deadline verstreken.',true);return;}
+  if(isPastDeadline()){toast('Deadline has passed.',true);return;}
   saveDB(); updateDashboard();
   const el=document.getElementById('picks-saved'); el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500);
-  toast('Voorspellingen opgeslagen!');
+  toast('Predictions saved!');
 }
 
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────────
 function renderLeaderboard() {
   const sel=document.getElementById('lb-filter');
   const curVal=sel.value;
-  sel.innerHTML='<option value="all">Alle deelnemers</option>'+Object.values(DB.pools).map(p=>`<option value="${p.code}">${p.icon} ${p.name}</option>`).join('');
+  sel.innerHTML='<option value="all">All participants</option>'+Object.values(DB.pools).map(p=>`<option value="${p.code}">${p.icon} ${p.name}</option>`).join('');
   sel.value=curVal;
 
   let players=Object.keys(DB.players);
@@ -1062,10 +1094,10 @@ function renderLeaderboard() {
   const ranked=players.map(p=>({name:p,pts:calcPoints(p),pct:filledPct(p)})).sort((a,b)=>b.pts-a.pts||b.pct-a.pct);
 
   const c=document.getElementById('lb-card'); c.innerHTML='';
-  if(!ranked.length){c.innerHTML='<div style="color:var(--muted);font-size:14px">Nog geen deelnemers.</div>';return;}
+  if(!ranked.length){c.innerHTML='<div style="color:var(--muted);font-size:14px">No participants yet.</div>';return;}
 
   const hdr=document.createElement('div'); hdr.className='lb-header';
-  hdr.innerHTML='<div></div><div></div><div>Naam</div><div style="text-align:right">Punten</div><div style="text-align:right">Ingevuld</div>';
+  hdr.innerHTML='<div></div><div></div><div>Name</div><div style="text-align:right">Points</div><div style="text-align:right">Filled</div>';
   c.appendChild(hdr);
 
   ranked.forEach((p,i)=>{
@@ -1074,7 +1106,7 @@ function renderLeaderboard() {
     row.innerHTML=`
       <div class="lb-rank">${medal||(i+1)}</div>
       ${makeAvatar(p.name,36)}
-      <div class="lb-name">${p.name}${p.name===currentUser?' <span class="pill pill-blue" style="font-size:11px">jij</span>':''}</div>
+      <div class="lb-name">${p.name}${p.name===currentUser?' <span class="pill pill-blue" style="font-size:11px">you</span>':''}</div>
       <div class="lb-pts">${p.pts}</div>
       <div class="lb-pct">${p.pct}%</div>`;
     c.appendChild(row);
@@ -1084,14 +1116,14 @@ function renderLeaderboard() {
 // ─── POOLS ────────────────────────────────────────────────────────────────────
 function joinPool(code, silent=false) {
   code=(code||'').trim().toUpperCase();
-  if(!code){if(!silent)toast('Voer een poolcode in.',true);return;}
-  if(!currentUser){if(!silent)toast('Log eerst in.',true);return;}
+  if(!code){if(!silent)toast('Enter a pool code.',true);return;}
+  if(!currentUser){if(!silent)toast('Please enter your name first.',true);return;}
   const pool=DB.pools[code];
-  if(!pool){if(!silent)toast('Pool niet gevonden: '+code,true);return;}
+  if(!pool){if(!silent)toast('Pool not found: '+code,true);return;}
   if(!pool.members)pool.members=[];
-  if(pool.members.includes(currentUser)){if(!silent)toast('Al lid van deze pool.');return;}
+  if(pool.members.includes(currentUser)){if(!silent)toast('Already a member of this pool.');return;}
   pool.members.push(currentUser); saveDB(); updateDashboard();
-  toast('Toegevoegd aan "'+pool.name+'"!');
+  toast('Added to "'+pool.name+'"!');
 }
 
 // ─── ADMIN ────────────────────────────────────────────────────────────────────
@@ -1099,7 +1131,7 @@ function unlockAdmin() {
   if(document.getElementById('admin-pw').value===ADMIN_PASSWORD){
     document.getElementById('admin-lock').style.display='none';
     document.getElementById('admin-panel').style.display='block';
-  } else toast('Verkeerd wachtwoord.',true);
+  } else toast('Incorrect password.',true);
 }
 function lockAdmin() {
   document.getElementById('admin-lock').style.display='block';
@@ -1151,7 +1183,7 @@ function renderAdminKo() {
     const actual=(DB.koResults&&DB.koResults[r.key])||[];
     for(let i=0;i<r.slots;i++){
       const sel=document.createElement('select');
-      sel.innerHTML='<option value="">— land —</option>'+ALL_TEAMS.map(t=>`<option value="${t}"${actual[i]===t?' selected':''}>${flag(t)} ${t}</option>`).join('');
+      sel.innerHTML='<option value="">— team —</option>'+ALL_TEAMS.map(t=>`<option value="${t}"${actual[i]===t?' selected':''}>${flag(t)} ${t}</option>`).join('');
       const idx=i,key=r.key;
       sel.onchange=function(){if(!DB.koResults[key])DB.koResults[key]=[];DB.koResults[key][idx]=this.value;};
       slots.appendChild(sel);
@@ -1162,18 +1194,18 @@ function renderAdminKo() {
 
 function renderAdminBonus() {
   const c=document.getElementById('admin-bonus-card'); if(!c)return;
-  c.innerHTML='<div class="card-title">Correcte antwoorden</div>';
+  c.innerHTML='<div class="card-title">Correct answers</div>';
   BONUS.forEach(q=>{
     const div=document.createElement('div'); div.className='bonus-row';
     div.innerHTML=`<div class="bonus-q" style="font-size:13px">${q.label}</div>`;
     if(q.opts){
       const sel=document.createElement('select'); sel.className='bonus-inp';
-      sel.innerHTML='<option value="">— correct antwoord —</option>'+q.opts.map(o=>`<option value="${o}"${(DB.bonusAnswers&&DB.bonusAnswers[q.key])===o?' selected':''}>${o}</option>`).join('');
+      sel.innerHTML='<option value="">— correct answer —</option>'+q.opts.map(o=>`<option value="${o}"${(DB.bonusAnswers&&DB.bonusAnswers[q.key])===o?' selected':''}>${o}</option>`).join('');
       const k=q.key; sel.onchange=function(){DB.bonusAnswers[k]=this.value;};
       div.appendChild(sel);
     } else {
       const inp=document.createElement('input'); inp.className='bonus-inp';
-      inp.type=q.type||'text'; inp.placeholder='Correct antwoord…';
+      inp.type=q.type||'text'; inp.placeholder='Correct answer…';
       inp.value=(DB.bonusAnswers&&DB.bonusAnswers[q.key])||'';
       const k=q.key; inp.onchange=function(){DB.bonusAnswers[k]=this.value;};
       div.appendChild(inp);
@@ -1191,17 +1223,17 @@ function renderAdminPools() {
         <div class="pool-icon">${pool.icon}</div>
         <div>
           <div style="font-weight:600">${pool.name}</div>
-          <div style="font-size:13px;color:var(--muted)">${(pool.members||[]).length} leden</div>
+          <div style="font-size:13px;color:var(--muted)">${(pool.members||[]).length} members</div>
         </div>
       </div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Deel deze code:</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Share this code:</div>
       <div style="display:flex;gap:8px;align-items:center">
         <div style="flex:1;padding:8px 12px;background:var(--bg);border-radius:var(--radius-sm);font-family:'DM Mono',monospace;font-size:16px;font-weight:500;letter-spacing:.1em">${pool.code}</div>
-        <button class="btn btn-sm" onclick="navigator.clipboard.writeText('${pool.code}').then(()=>toast('Code gekopieerd!'))">Kopieer</button>
+        <button class="btn btn-sm" onclick="navigator.clipboard.writeText('${pool.code}').then(()=>toast('Code copied!'))">Copy</button>
       </div>`;
     c.appendChild(card);
   });
-  if(!Object.keys(DB.pools).length) c.innerHTML='<div style="color:var(--muted);font-size:14px">Nog geen pools aangemaakt.</div>';
+  if(!Object.keys(DB.pools).length) c.innerHTML='<div style="color:var(--muted);font-size:14px">No pools created yet.</div>';
 }
 
 function pickAdminIcon(el, icon) {
@@ -1212,19 +1244,57 @@ function pickAdminIcon(el, icon) {
 
 function adminCreatePool() {
   const name=document.getElementById('admin-pool-name').value.trim();
-  if(!name){toast('Voer een naam in.',true);return;}
+  if(!name){toast('Please enter a name.',true);return;}
   const code=name.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,6)+Math.floor(100+Math.random()*900);
   DB.pools[code]={code,name,icon:adminIcon,members:[]};
   saveDB();
   document.getElementById('admin-pool-name').value='';
   renderAdminPools(); renderLeaderboard();
-  toast('Pool aangemaakt! Code: '+code);
+  toast('Pool created! Code: '+code);
 }
 
 function saveAdmin() {
   saveDB();
   const el=document.getElementById('admin-saved'); el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500);
-  toast('Uitslagen opgeslagen. Punten herberekend.');
+  toast('Results saved. Points recalculated.');
+}
+
+// ─── AUTO-FILL R16 ────────────────────────────────────────────────────────────
+function calcGroupStandings() {
+  const standings = {};
+  ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(g => {
+    const stats = {};
+    WC_GROUPS[g].forEach(t => { stats[t] = {pts:0,gd:0,gf:0,team:t}; });
+    BY_GROUP[g].forEach(m => {
+      const r = DB.results[m.id];
+      if (!r || r.h==null || r.a==null) return;
+      const h=+r.h, a=+r.a;
+      stats[m.h].gf+=h; stats[m.h].gd+=h-a;
+      stats[m.a].gf+=a; stats[m.a].gd+=a-h;
+      if(h>a) stats[m.h].pts+=3;
+      else if(h<a) stats[m.a].pts+=3;
+      else { stats[m.h].pts+=1; stats[m.a].pts+=1; }
+    });
+    standings[g]=Object.values(stats).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
+  });
+  return standings;
+}
+
+function autoFillQualified() {
+  const standings = calcGroupStandings();
+  const qualified = [];
+  const thirds = [];
+  ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(g => {
+    qualified.push(standings[g][0].team);
+    qualified.push(standings[g][1].team);
+    thirds.push(standings[g][2]);
+  });
+  thirds.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
+  thirds.slice(0,8).forEach(t => qualified.push(t.team));
+  if(!DB.koResults) DB.koResults={};
+  DB.koResults.r16 = qualified;
+  renderAdminKo();
+  toast('Auto-filled 32 qualified teams for R16!');
 }
 </script>
 </body>
