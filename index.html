@@ -1038,6 +1038,7 @@ function renderKoRounds() {
         if(!DB.players[currentUser].ko) DB.players[currentUser].ko={};
         if(!DB.players[currentUser].ko[key]) DB.players[currentUser].ko[key]=[];
         DB.players[currentUser].ko[key][idx]=this.value;
+        saveDB();
       };
       slots.appendChild(sel);
     }
@@ -1263,6 +1264,11 @@ function saveAdmin() {
 function autoSuggestMyKnockout() {
   if (!currentUser) { toast('Please enter your name first.', true); return; }
   if (isPastDeadline()) { toast('Deadline has passed.', true); return; }
+  const resultsEntered = Object.values(DB.results||{}).filter(r=>r&&r.h!=null&&r.a!=null).length;
+  if (!resultsEntered) {
+    toast('No match results have been entered yet — check back after matches are played.', true);
+    return;
+  }
   const standings = calcGroupStandings();
   const projected = [];
   const thirds = [];
@@ -1276,6 +1282,7 @@ function autoSuggestMyKnockout() {
   if (!DB.players[currentUser]) DB.players[currentUser]={scores:{},ko:{},bonus:{}};
   if (!DB.players[currentUser].ko) DB.players[currentUser].ko={};
   DB.players[currentUser].ko.r16 = projected;
+  saveDB();
   renderKoRounds();
   toast('R16 picks filled in from projected group standings!');
 }
