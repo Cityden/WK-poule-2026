@@ -406,8 +406,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   <div id="ptab-group-cnt"><div class="group-grid" id="group-cards"></div></div>
   <div id="ptab-knockout-cnt" style="display:none">
     <div style="margin-bottom:1.25rem;padding:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)">
-      <div style="font-size:13px;font-weight:600;margin-bottom:.4rem">Auto-suggest my picks</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Fills in your R16 picks with the teams currently projected to qualify based on group results.</p>
+      <div style="font-size:13px;font-weight:600;margin-bottom:.4rem">Auto-suggest R16 from my group picks</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Calculates which 32 teams would advance based on <strong>your own group stage predictions</strong> (top 2 per group + 8 best 3rd-place). You can adjust any slot manually afterwards.</p>
       <button class="btn btn-navy btn-sm" onclick="autoSuggestMyKnockout()">⚡ Auto-suggest R16</button>
     </div>
     <div id="ko-rounds"></div>
@@ -1264,12 +1264,32 @@ function saveAdmin() {
 function autoSuggestMyKnockout() {
   if (!currentUser) { toast('Please enter your name first.', true); return; }
   if (isPastDeadline()) { toast('Deadline has passed.', true); return; }
-  const resultsEntered = Object.values(DB.results||{}).filter(r=>r&&r.h!=null&&r.a!=null).length;
-  if (!resultsEntered) {
-    toast('No match results have been entered yet — check back after matches are played.', true);
+
+  const pd = DB.players[currentUser] || {scores:{}};
+  const myPicked = Object.values(pd.scores||{}).filter(s=>s&&s.h!=null&&s.a!=null).length;
+  if (!myPicked) {
+    toast('Fill in your group stage predictions first, then auto-suggest will use them.', true);
     return;
   }
-  const standings = calcGroupStandings();
+
+  // Calculate group standings based on THIS USER's own score predictions
+  const standings = {};
+  ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(g => {
+    const stats = {};
+    WC_GROUPS[g].forEach(t => { stats[t] = {pts:0,gd:0,gf:0,team:t}; });
+    BY_GROUP[g].forEach(m => {
+      const r = pd.scores && pd.scores[m.id];
+      if (!r || r.h==null || r.a==null) return;
+      const h=+r.h, a=+r.a;
+      stats[m.h].gf+=h; stats[m.h].gd+=h-a;
+      stats[m.a].gf+=a; stats[m.a].gd+=a-h;
+      if(h>a) stats[m.h].pts+=3;
+      else if(h<a) stats[m.a].pts+=3;
+      else { stats[m.h].pts+=1; stats[m.a].pts+=1; }
+    });
+    standings[g]=Object.values(stats).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
+  });
+
   const projected = [];
   const thirds = [];
   ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(g => {
@@ -1279,12 +1299,13 @@ function autoSuggestMyKnockout() {
   });
   thirds.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
   thirds.slice(0,8).forEach(t => projected.push(t.team));
+
   if (!DB.players[currentUser]) DB.players[currentUser]={scores:{},ko:{},bonus:{}};
   if (!DB.players[currentUser].ko) DB.players[currentUser].ko={};
   DB.players[currentUser].ko.r16 = projected;
   saveDB();
   renderKoRounds();
-  toast('R16 picks filled in from projected group standings!');
+  toast(`R16 suggested from your ${myPicked} group predictions — adjust any pick below!`);
 }
 
 // ─── AUTO-FILL R16 (admin utility) ───────────────────────────────────────────
