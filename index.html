@@ -564,25 +564,6 @@
 </div>
 
 <script>
-// ─── FIREBASE CONFIG ──────────────────────────────────────────────────────────
-// 1. Go to https://console.firebase.google.com
-// 2. Create a project → Add a web app → copy the config below
-// 3. In the Firebase console: Build → Realtime Database → Create database
-//    Start in TEST mode (you can tighten rules later)
-const firebaseConfig = {
-  apiKey:            "REPLACE_WITH_YOUR_API_KEY",
-  authDomain:        "REPLACE_WITH_YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL:       "https://REPLACE_WITH_YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId:         "REPLACE_WITH_YOUR_PROJECT_ID",
-  storageBucket:     "REPLACE_WITH_YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "REPLACE_WITH_YOUR_SENDER_ID",
-  appId:             "REPLACE_WITH_YOUR_APP_ID"
-};
-
-firebase.initializeApp(firebaseConfig);
-const _rtdb   = firebase.database();
-const _DB_REF = _rtdb.ref('wc2026_v1');
-
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const ADMIN_PASSWORD = 'wc2026'; // Change this before sharing!
 
@@ -639,56 +620,61 @@ let DB = { players: {}, results: {}, koResults: {}, bonusAnswers: {}, pools: {} 
 let currentUser = '';
 let selectedIcon = 'ti-briefcase';
 let _dbReady = false;
+let _DB_REF = null;
 
 // ─── FIREBASE SYNC ────────────────────────────────────────────────────────────
 function saveDB() {
-  _DB_REF.set(DB).catch(e => console.error('Save error:', e));
+  if (_DB_REF) _DB_REF.set(DB).catch(e => console.error('Save error:', e));
 }
 
-// Real-time listener: fires on load and whenever any user saves data
-_DB_REF.on('value', snapshot => {
-  const data = snapshot.val();
-  if (data) {
-    DB = data;
-    if (!DB.players)      DB.players = {};
-    if (!DB.results)      DB.results = {};
-    if (!DB.koResults)    DB.koResults = {};
-    if (!DB.bonusAnswers) DB.bonusAnswers = {};
-    if (!DB.pools)        DB.pools = {};
-  }
-
-  if (!_dbReady) {
-    // First load: initialise the app
-    _dbReady = true;
-    document.getElementById('app-loading').style.display = 'none';
-    const savedUser = localStorage.getItem('wc2026_currentUser');
-    if (savedUser && DB.players[savedUser]) {
-      currentUser = savedUser;
-      document.getElementById('inp-name').value = savedUser;
-      showDashboard();
+function _initFirebase(config) {
+  firebase.initializeApp(config);
+  _DB_REF = firebase.database().ref('wc2026_v1');
+  _DB_REF.on('value', snapshot => {
+    const data = snapshot.val();
+    if (data) {
+      DB = data;
+      if (!DB.players)      DB.players = {};
+      if (!DB.results)      DB.results = {};
+      if (!DB.koResults)    DB.koResults = {};
+      if (!DB.bonusAnswers) DB.bonusAnswers = {};
+      if (!DB.pools)        DB.pools = {};
     }
-  } else {
-    // Remote update (e.g. admin saved results): refresh relevant views
-    if (currentUser) updateDashboard();
-    const lbView = document.getElementById('view-leaderboard');
-    if (lbView && lbView.classList.contains('active')) renderLeaderboard();
-  }
-});
+    if (!_dbReady) {
+      _dbReady = true;
+      document.getElementById('app-loading').style.display = 'none';
+      const savedUser = localStorage.getItem('wc2026_currentUser');
+      if (savedUser && DB.players[savedUser]) {
+        currentUser = savedUser;
+        document.getElementById('inp-name').value = savedUser;
+        showDashboard();
+      }
+    } else {
+      if (currentUser) updateDashboard();
+      const lbView = document.getElementById('view-leaderboard');
+      if (lbView && lbView.classList.contains('active')) renderLeaderboard();
+    }
+  });
+}
 
-// Timeout fallback in case Firebase config is not set up correctly
-setTimeout(() => {
-  if (!_dbReady) {
+// Config wordt opgehaald van de serverless functie — geen credentials in de code
+fetch('/api/config')
+  .then(r => { if (!r.ok) throw new Error('Config unavailable'); return r.json(); })
+  .then(config => {
+    if (!config.apiKey) throw new Error('Lege config — stel omgevingsvariabelen in via Vercel');
+    _initFirebase(config);
+  })
+  .catch(err => {
+    console.error(err);
     document.getElementById('app-loading').innerHTML = `
       <div style="text-align:center;padding:2rem;max-width:360px">
         <div style="font-size:22px;margin-bottom:12px">⚠️</div>
-        <div style="font-size:15px;font-weight:600;margin-bottom:8px">Could not connect to database</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:8px">Configuratie ontbreekt</div>
         <div style="font-size:13px;color:var(--text-muted);line-height:1.6">
-          Open <code>index.html</code> and replace the <strong>firebaseConfig</strong> values with your own Firebase project settings.
-          See the comments in the file for instructions.
+          Voeg de Firebase-omgevingsvariabelen toe via <strong>Vercel → Project Settings → Environment Variables</strong> en herstart de deployment.
         </div>
       </div>`;
-  }
-}, 10000);
+  });
 
 window.addEventListener('beforeunload', () => {
   if (currentUser) localStorage.setItem('wc2026_currentUser', currentUser);
