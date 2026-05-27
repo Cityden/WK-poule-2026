@@ -404,7 +404,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <button class="sub-btn"        onclick="pickTab('bonus')"    id="ptab-bonus">Bonus</button>
   </div>
   <div id="ptab-group-cnt"><div class="group-grid" id="group-cards"></div></div>
-  <div id="ptab-knockout-cnt" style="display:none"><div id="ko-rounds"></div></div>
+  <div id="ptab-knockout-cnt" style="display:none">
+    <div style="margin-bottom:1.25rem;padding:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)">
+      <div style="font-size:13px;font-weight:600;margin-bottom:.4rem">Auto-suggest my picks</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Fills in your R16 picks with the teams currently projected to qualify based on group results.</p>
+      <button class="btn btn-navy btn-sm" onclick="autoSuggestMyKnockout()">⚡ Auto-suggest R16</button>
+    </div>
+    <div id="ko-rounds"></div>
+  </div>
   <div id="ptab-bonus-cnt"    style="display:none"><div class="card" id="bonus-card"></div></div>
   <div class="save-bar">
     <button class="btn btn-primary" onclick="savePicks()" id="save-picks-btn">💾 Save</button>
@@ -453,14 +460,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <button class="sub-btn"        onclick="adminTab('pools')"   id="atab-pools">Pools</button>
     </div>
     <div id="atab-results-cnt"><div class="group-grid" id="admin-result-cards"></div></div>
-    <div id="atab-ko-cnt" style="display:none">
-      <div style="margin-bottom:1.25rem;padding:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)">
-        <div style="font-size:13px;font-weight:600;margin-bottom:.5rem">Auto-fill qualified teams</div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Calculates top 2 per group + 8 best 3rd-place teams from entered results and fills the R16 slots.</p>
-        <button class="btn btn-navy" onclick="autoFillQualified()">⚡ Auto-fill R16 from standings</button>
-      </div>
-      <div id="admin-ko-rounds"></div>
-    </div>
+    <div id="atab-ko-cnt" style="display:none"><div id="admin-ko-rounds"></div></div>
     <div id="atab-bonus-cnt"   style="display:none"><div class="card" id="admin-bonus-card"></div></div>
     <div id="atab-pools-cnt"   style="display:none">
       <div class="card" style="max-width:500px;margin-bottom:1rem">
@@ -909,7 +909,7 @@ function renderSchedule(activeGroup='all') {
       </div>
       <div class="match-row">
         <div class="match-team"><span class="match-flag">${flag(m.h)}</span>${m.h}</div>
-        <div class="match-time"><div class="time">${m.time}</div><div class="date-small">NL time</div></div>
+        <div class="match-time"><div class="time">${m.time}</div><div class="date-small">${fmtDate(m.date)}</div></div>
         <div class="match-team right">${m.a}<span class="match-flag">${flag(m.a)}</span></div>
       </div>`;
     return card;
@@ -960,9 +960,9 @@ function renderCountries(filterGroup) {
     const grp=Object.keys(WC_GROUPS).find(g=>WC_GROUPS[g].includes(team))||'?';
     const card=document.createElement('div'); card.className='country-card';
     const starsHtml=c.players.map(p=>{
-      const filled='★'.repeat(p.stars), empty='☆'.repeat(3-p.stars);
+      const stars='★'.repeat(p.stars);
       return `<span style="display:flex;align-items:baseline;gap:5px;margin-bottom:3px">
-        <span style="color:var(--gold);letter-spacing:1px;font-size:13px">${filled}<span style="color:var(--faint)">${empty}</span></span>
+        <span style="color:var(--gold);letter-spacing:1px;font-size:13px">${stars}</span>
         <span style="font-size:12px;color:var(--muted)">${p.name}</span>
       </span>`;
     }).join('');
@@ -1259,7 +1259,28 @@ function saveAdmin() {
   toast('Results saved. Points recalculated.');
 }
 
-// ─── AUTO-FILL R16 ────────────────────────────────────────────────────────────
+// ─── AUTO-SUGGEST MY KNOCKOUT PICKS ──────────────────────────────────────────
+function autoSuggestMyKnockout() {
+  if (!currentUser) { toast('Please enter your name first.', true); return; }
+  if (isPastDeadline()) { toast('Deadline has passed.', true); return; }
+  const standings = calcGroupStandings();
+  const projected = [];
+  const thirds = [];
+  ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(g => {
+    projected.push(standings[g][0].team);
+    projected.push(standings[g][1].team);
+    thirds.push(standings[g][2]);
+  });
+  thirds.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
+  thirds.slice(0,8).forEach(t => projected.push(t.team));
+  if (!DB.players[currentUser]) DB.players[currentUser]={scores:{},ko:{},bonus:{}};
+  if (!DB.players[currentUser].ko) DB.players[currentUser].ko={};
+  DB.players[currentUser].ko.r16 = projected;
+  renderKoRounds();
+  toast('R16 picks filled in from projected group standings!');
+}
+
+// ─── AUTO-FILL R16 (admin utility) ───────────────────────────────────────────
 function calcGroupStandings() {
   const standings = {};
   ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(g => {
