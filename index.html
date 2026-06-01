@@ -1230,17 +1230,37 @@ function renderAdminBonus() {
   });
 }
 
+function deletePool(code) {
+  if (!confirm(`Delete pool "${DB.pools[code]&&DB.pools[code].name}" (${code})? This cannot be undone.`)) return;
+  delete DB.pools[code];
+  saveDB();
+  renderAdminPools();
+  renderLeaderboard();
+  toast('Pool deleted.');
+}
+
 function renderAdminPools() {
   const c=document.getElementById('admin-pools-list'); c.innerHTML='';
   Object.values(DB.pools).forEach(pool=>{
+    const members=pool.members||[];
+    const membersHtml=members.length
+      ? members.map(m=>`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:99px;padding:3px 10px;font-size:12px;margin:2px">${makeAvatar(m,20)} ${m}</span>`).join('')
+      : '<span style="font-size:13px;color:var(--faint)">No members yet</span>';
     const card=document.createElement('div'); card.className='card';
     card.innerHTML=`
-      <div class="pool-card-head">
-        <div class="pool-icon">${pool.icon}</div>
-        <div>
-          <div style="font-weight:600">${pool.name}</div>
-          <div style="font-size:13px;color:var(--muted)">${(pool.members||[]).length} members</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:.75rem">
+        <div class="pool-card-head" style="margin-bottom:0">
+          <div class="pool-icon">${pool.icon}</div>
+          <div>
+            <div style="font-weight:600">${pool.name}</div>
+            <div style="font-size:13px;color:var(--muted)">${members.length} member${members.length!==1?'s':''}</div>
+          </div>
         </div>
+        <button class="btn btn-sm" style="color:var(--red);border-color:var(--red);flex-shrink:0" onclick="deletePool('${pool.code}')">🗑 Delete</button>
+      </div>
+      <div style="margin-bottom:.75rem">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px">Members</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">${membersHtml}</div>
       </div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Share this code:</div>
       <div style="display:flex;gap:8px;align-items:center">
