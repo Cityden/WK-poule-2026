@@ -330,6 +330,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="stat-card"><div class="stat-val" id="dash-rank">—</div><div class="stat-label">Position</div></div>
       <div class="stat-card"><div class="stat-val" id="dash-pct">0%</div><div class="stat-label">Filled</div></div>
     </div>
+    <div id="dash-cta" style="margin:.75rem 0">
+      <button class="btn btn-primary btn-block" onclick="nav('picks')">✏️ Fill in my predictions →</button>
+    </div>
     <div id="dash-pools"></div>
     <button class="btn btn-sm" onclick="switchUser()" style="margin-top:.75rem">↔ Switch user</button>
   </div>
@@ -681,11 +684,11 @@ const KO_ROUNDS = [
 
 const BONUS = [
   {key:'b1',label:'Which country scores the most goals in the group stage?',pts:10},
-  {key:'b2',label:'Total number of goals in the tournament? (±5 is correct)',pts:10,type:'number'},
-  {key:'b3',label:'Golden Boot — which player wins the top scorer award?',pts:10},
+  {key:'b2',label:'How many goals are scored in the final? (±1 is correct)',pts:10,type:'number',tol:1},
+  {key:'b3',label:'Which country wins the tournament?',pts:10},
   {key:'b4',label:'Does the final go to extra time or penalties?',pts:10,opts:['Yes','No']},
-  {key:'b5',label:'How many red cards in the tournament? (±3 is correct)',pts:10,type:'number'},
-  {key:'b6',label:'Which continent has the most teams in the semi-finals?',pts:10,opts:['Europe','South America','CONCACAF','Africa','Asia/Oceania']},
+  {key:'b5',label:'How many goals are scored in the group stage in total? (±10 is correct)',pts:10,type:'number',tol:10},
+  {key:'b6',label:'Which group scores the most goals?',pts:10,opts:['A','B','C','D','E','F','G','H','I','J','K','L']},
 ];
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -837,6 +840,8 @@ function enterApp() {
 function showDashboard() {
   document.getElementById('home-login').style.display = 'none';
   document.getElementById('home-dash').style.display  = 'block';
+  const cta = document.getElementById('dash-cta');
+  if (cta) cta.style.display = isPastDeadline() ? 'none' : 'block';
   updateNavUser();
   updateDashboard();
 }
@@ -876,6 +881,45 @@ function updateNavUser() {
   document.getElementById('nav-user').style.display='flex';
 }
 
+// ─── COUNTRY NAME NORMALIZER ─────────────────────────────────────────────────
+const COUNTRY_ALIASES = {
+  // Dutch
+  'nederland':'Netherlands','duitsland':'Germany','frankrijk':'France',
+  'spanje':'Spain','belgie':'Belgium','brazilie':'Brazil','turkije':'Turkey',
+  'noorwegen':'Norway','zweden':'Sweden','zwitserland':'Switzerland',
+  'oostenrijk':'Austria','schotland':'Scotland','engeland':'England',
+  'kroatie':'Croatia','argentinie':'Argentina','australie':'Australia',
+  'tunesie':'Tunisia','algerije':'Algeria','ivoorkust':'Ivory Coast',
+  'egypte':'Egypt','bosnie':'Bosnia-Herzegovina','bosnie herzegovina':'Bosnia-Herzegovina',
+  'bosnien':'Bosnia-Herzegovina','tsjechie':'Czechia','tsjechische republiek':'Czechia',
+  'saoedi arabie':'Saudi Arabia','saoedi-arabie':'Saudi Arabia','saoedi arabie':'Saudi Arabia',
+  'kaapverdie':'Cape Verde','kaapverdische eilanden':'Cape Verde',
+  'zuidafrika':'South Africa','zuid-afrika':'South Africa','zuid afrika':'South Africa',
+  'dr congo':'DR Congo','democratische republiek congo':'DR Congo',
+  'irak':'Iraq','jordanie':'Jordan','oezbekistan':'Uzbekistan',
+  'nieuw zeeland':'New Zealand','nieuwzeeland':'New Zealand',
+  'zuidkorea':'South Korea','zuid korea':'South Korea','korea':'South Korea',
+  'curacao':'Curaçao','haiti':'Haiti','verenigde staten':'USA',
+  // English variants
+  'usa':'USA','united states':'USA','united states of america':'USA','america':'USA',
+  'us':'USA','czech republic':'Czechia','ivory coast':'Ivory Coast',
+  "cote d'ivoire":'Ivory Coast','cote divoire':'Ivory Coast',
+  'marokko':'Morocco','morocco':'Morocco',
+  'bosnia':'Bosnia-Herzegovina','bosnia herzegovina':'Bosnia-Herzegovina',
+  'saudi':'Saudi Arabia','saudi arabia':'Saudi Arabia',
+  'cape verde':'Cape Verde','south korea':'South Korea',
+  'south africa':'South Africa','dr congo':'DR Congo',
+  'new zealand':'New Zealand','ivory coast':'Ivory Coast',
+};
+
+function normalizeCountry(str) {
+  if (!str) return '';
+  const s = str.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[-\s]+/g,' ').trim();
+  if (COUNTRY_ALIASES[s]) return COUNTRY_ALIASES[s].toLowerCase();
+  const direct = Object.keys(COUNTRIES).find(k => k.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'') === s);
+  return direct ? direct.toLowerCase() : s;
+}
+
 // ─── SCORING ──────────────────────────────────────────────────────────────────
 function calcPoints(player) {
   let pts=0; const pd=DB.players[player]; if(!pd) return 0;
@@ -896,16 +940,26 @@ function calcPoints(player) {
   BONUS.forEach(q => {
     const ans=pd.bonus&&pd.bonus[q.key], correct=DB.bonusAnswers&&DB.bonusAnswers[q.key];
     if(!ans||!correct) return;
-    if(q.type==='number') { const tol=q.key==='b5'?3:5; if(Math.abs(+ans-+correct)<=tol) pts+=q.pts; }
-    else if(ans.trim().toLowerCase()===correct.trim().toLowerCase()) pts+=q.pts;
+    if(q.type==='number') { const tol=q.tol??5; if(Math.abs(+ans-+correct)<=tol) pts+=q.pts; }
+    else if(q.opts) { if(ans.trim().toLowerCase()===correct.trim().toLowerCase()) pts+=q.pts; }
+    else if(normalizeCountry(ans)===normalizeCountry(correct)) pts+=q.pts;
   });
   return pts;
 }
 
 function filledPct(player) {
   const pd=DB.players[player]; if(!pd) return 0;
-  let f=0; SCHEDULE.forEach(m=>{ const s=pd.scores&&pd.scores[m.id]; if(s&&s.h!=null&&s.a!=null) f++; });
-  return Math.round(f/SCHEDULE.length*100);
+  let f=0, total=0;
+  total += SCHEDULE.length;
+  SCHEDULE.forEach(m=>{ const s=pd.scores&&pd.scores[m.id]; if(s&&s.h!=null&&s.a!=null) f++; });
+  KO_ROUNDS.forEach(r=>{
+    total += r.slots;
+    const picks=(pd.ko&&pd.ko[r.key])||[];
+    for(let i=0;i<r.slots;i++){ if(picks[i]) f++; }
+  });
+  total += BONUS.length;
+  BONUS.forEach(q=>{ if(pd.bonus&&pd.bonus[q.key]!=null&&pd.bonus[q.key]!=='') f++; });
+  return Math.round(f/total*100);
 }
 
 function globalRank(player) {
@@ -1330,8 +1384,12 @@ function autoFillGroupStage() {
   if (!DB.players[currentUser]) DB.players[currentUser] = {scores:{},ko:{},bonus:{}};
   if (!DB.players[currentUser].scores) DB.players[currentUser].scores = {};
 
-  const winScores = [[1,0],[2,0],[2,1],[3,0],[3,1],[3,2],[4,1],[4,2],[2,0],[1,0],[3,1]];
-  const drawScores = [[0,0],[1,1],[2,2],[1,1],[0,0]];
+  const winScores = [
+    [1,0],[2,0],[2,1],[3,0],[3,1],[3,2],[4,1],[4,2],
+    [4,0],[5,1],[5,2],[1,2],[0,1],[0,2],[1,3],[2,3],
+    [3,0],[2,1],[1,0],[4,3],[2,0],[3,1],[1,0],[2,1]
+  ];
+  const drawScores = [[0,0],[1,1],[2,2],[3,3],[1,1],[0,0],[2,2],[1,1]];
 
   SCHEDULE.forEach(m => {
     const rankH = (COUNTRIES[m.h] && COUNTRIES[m.h].ranking) || 50;
