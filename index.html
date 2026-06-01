@@ -403,12 +403,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <button class="sub-btn"        onclick="pickTab('knockout')" id="ptab-knockout">Knockout</button>
     <button class="sub-btn"        onclick="pickTab('bonus')"    id="ptab-bonus">Bonus</button>
   </div>
-  <div id="ptab-group-cnt"><div class="group-grid" id="group-cards"></div></div>
+  <div id="ptab-group-cnt">
+    <div style="margin-bottom:1rem;padding:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)">
+      <div style="font-size:13px;font-weight:600;margin-bottom:.4rem">Auto-fill group stage</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Fills all 72 matches with realistic scores based on FIFA rankings. You can change any prediction afterwards.</p>
+      <button class="btn btn-navy btn-sm" onclick="autoFillGroupStage()">⚡ Auto-fill group stage</button>
+    </div>
+    <div class="group-grid" id="group-cards"></div>
+  </div>
   <div id="ptab-knockout-cnt" style="display:none">
     <div style="margin-bottom:1.25rem;padding:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)">
-      <div style="font-size:13px;font-weight:600;margin-bottom:.4rem">Auto-suggest R16 from my group picks</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Calculates which 32 teams would advance based on <strong>your own group stage predictions</strong> (top 2 per group + 8 best 3rd-place). You can adjust any slot manually afterwards.</p>
-      <button class="btn btn-navy btn-sm" onclick="autoSuggestMyKnockout()">⚡ Auto-suggest R16</button>
+      <div style="font-size:13px;font-weight:600;margin-bottom:.4rem">Auto-suggest all KO rounds from my group picks</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Calculates which teams advance based on <strong>your own group stage predictions</strong> (top 2 per group + 8 best 3rd-place), then uses FIFA rankings to fill QF, SF, Final and Winner. Adjust any slot manually afterwards.</p>
+      <button class="btn btn-navy btn-sm" onclick="autoSuggestMyKnockout()">⚡ Auto-suggest all KO rounds</button>
     </div>
     <div id="ko-rounds"></div>
   </div>
@@ -466,6 +473,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="card" style="max-width:500px;margin-bottom:1rem">
         <div class="card-title">Create new pool</div>
         <div class="field"><label>Name</label><input id="admin-pool-name" placeholder="E.g. Work 2026"></div>
+        <div class="field"><label>Code <span style="color:var(--faint);font-weight:400">(optional — leave blank to auto-generate)</span></label><input id="admin-pool-code" placeholder="E.g. TEST123" maxlength="12" style="text-transform:uppercase" oninput="this.value=this.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase()"></div>
         <div class="field"><label>Icon</label>
           <div class="icon-picker" id="admin-icon-picker">
             <div class="icon-opt selected" onclick="pickAdminIcon(this,'💼')">💼</div>
@@ -679,6 +687,8 @@ let currentUser = '';
 let adminIcon = '💼';
 let _dbReady = false;
 let _DB_REF = null;
+let _saveDebounce = null;
+function debouncedSave() { clearTimeout(_saveDebounce); _saveDebounce = setTimeout(saveDB, 1200); }
 
 // ─── FIREBASE ─────────────────────────────────────────────────────────────────
 function saveDB() {
@@ -691,8 +701,12 @@ function _initFirebase(config) {
   _DB_REF.on('value', snapshot => {
     const data = snapshot.val();
     if (data) {
+      const savedScores = currentUser && DB.players && DB.players[currentUser] && DB.players[currentUser].scores;
       DB = data;
       ['players','results','koResults','bonusAnswers','pools'].forEach(k => { if (!DB[k]) DB[k] = {}; });
+      if (savedScores && currentUser && DB.players[currentUser]) {
+        Object.assign(DB.players[currentUser].scores, savedScores);
+      }
     }
     if (!_dbReady) {
       _dbReady = true;
@@ -1016,6 +1030,7 @@ function renderGroupCards() {
       DB.players[currentUser].scores[id][side]=e.target.value===''?null:+e.target.value;
       e.target.classList.toggle('filled', e.target.value!=='');
       updateProgressBar();
+      debouncedSave();
     });
   }
 }
@@ -1056,13 +1071,13 @@ function renderBonusForm() {
     if(q.opts){
       const sel=document.createElement('select'); sel.className='bonus-inp'; sel.disabled=locked;
       sel.innerHTML='<option value="">— choose —</option>'+q.opts.map(o=>`<option value="${o}"${(pd.bonus&&pd.bonus[q.key])===o?' selected':''}>${o}</option>`).join('');
-      const k=q.key; sel.onchange=function(){DB.players[currentUser].bonus[k]=this.value;};
+      const k=q.key; sel.onchange=function(){DB.players[currentUser].bonus[k]=this.value;saveDB();};
       div.appendChild(sel);
     } else {
       const inp=document.createElement('input'); inp.className='bonus-inp';
       inp.type=q.type||'text'; inp.placeholder='Your answer…'; inp.disabled=locked;
       inp.value=(pd.bonus&&pd.bonus[q.key])||'';
-      const k=q.key; inp.onchange=function(){DB.players[currentUser].bonus[k]=this.value;};
+      const k=q.key; inp.onchange=function(){DB.players[currentUser].bonus[k]=this.value;saveDB();};
       div.appendChild(inp);
     }
     c.appendChild(div);
@@ -1246,10 +1261,13 @@ function pickAdminIcon(el, icon) {
 function adminCreatePool() {
   const name=document.getElementById('admin-pool-name').value.trim();
   if(!name){toast('Please enter a name.',true);return;}
-  const code=name.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,6)+Math.floor(100+Math.random()*900);
+  const customCode=document.getElementById('admin-pool-code').value.trim().toUpperCase();
+  const code=customCode||name.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,6)+Math.floor(100+Math.random()*900);
+  if(DB.pools[code]){toast('Code "'+code+'" already exists — choose another.',true);return;}
   DB.pools[code]={code,name,icon:adminIcon,members:[]};
   saveDB();
   document.getElementById('admin-pool-name').value='';
+  document.getElementById('admin-pool-code').value='';
   renderAdminPools(); renderLeaderboard();
   toast('Pool created! Code: '+code);
 }
@@ -1258,6 +1276,48 @@ function saveAdmin() {
   saveDB();
   const el=document.getElementById('admin-saved'); el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500);
   toast('Results saved. Points recalculated.');
+}
+
+// ─── AUTO-FILL GROUP STAGE ────────────────────────────────────────────────────
+function autoFillGroupStage() {
+  if (!currentUser) { toast('Please enter your name first.', true); return; }
+  if (isPastDeadline()) { toast('Deadline has passed.', true); return; }
+
+  if (!DB.players[currentUser]) DB.players[currentUser] = {scores:{},ko:{},bonus:{}};
+  if (!DB.players[currentUser].scores) DB.players[currentUser].scores = {};
+
+  const winScores = [[1,0],[2,0],[2,1],[3,0],[3,1],[3,2],[4,1],[4,2],[2,0],[1,0],[3,1]];
+  const drawScores = [[0,0],[1,1],[2,2],[1,1],[0,0]];
+
+  SCHEDULE.forEach(m => {
+    const rankH = (COUNTRIES[m.h] && COUNTRIES[m.h].ranking) || 50;
+    const rankA = (COUNTRIES[m.a] && COUNTRIES[m.a].ranking) || 50;
+    const diff = rankA - rankH; // positive = home is stronger
+
+    const roll = Math.random() * 100;
+    let outcome;
+    if      (diff > 15) outcome = roll < 72 ? 'h' : roll < 88 ? 'd' : 'a';
+    else if (diff > 5)  outcome = roll < 55 ? 'h' : roll < 78 ? 'd' : 'a';
+    else if (diff < -15)outcome = roll < 12 ? 'h' : roll < 28 ? 'd' : 'a';
+    else if (diff < -5) outcome = roll < 22 ? 'h' : roll < 45 ? 'd' : 'a';
+    else                outcome = roll < 42 ? 'h' : roll < 68 ? 'd' : 'a';
+
+    let h, a;
+    if (outcome === 'd') {
+      const s = drawScores[Math.floor(Math.random() * drawScores.length)];
+      h = s[0]; a = s[1];
+    } else {
+      const s = winScores[Math.floor(Math.random() * winScores.length)];
+      if (outcome === 'h') { h = s[0]; a = s[1]; }
+      else { h = s[1]; a = s[0]; }
+    }
+    DB.players[currentUser].scores[m.id] = {h, a};
+  });
+
+  saveDB();
+  renderGroupCards();
+  updateProgressBar();
+  toast('Group stage auto-filled! Adjust any prediction you like.');
 }
 
 // ─── AUTO-SUGGEST MY KNOCKOUT PICKS ──────────────────────────────────────────
@@ -1300,12 +1360,24 @@ function autoSuggestMyKnockout() {
   thirds.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
   thirds.slice(0,8).forEach(t => projected.push(t.team));
 
+  const rankOf = t => (COUNTRIES[t] && COUNTRIES[t].ranking) || 99;
+  const byRank = arr => [...arr].sort((a,b) => rankOf(a) - rankOf(b));
+
+  const qf     = byRank(projected).slice(0, 8);
+  const sf     = byRank(qf).slice(0, 4);
+  const final2 = byRank(sf).slice(0, 2);
+  const winner = byRank(final2).slice(0, 1);
+
   if (!DB.players[currentUser]) DB.players[currentUser]={scores:{},ko:{},bonus:{}};
   if (!DB.players[currentUser].ko) DB.players[currentUser].ko={};
-  DB.players[currentUser].ko.r16 = projected;
+  DB.players[currentUser].ko.r16    = projected;
+  DB.players[currentUser].ko.qf     = qf;
+  DB.players[currentUser].ko.sf     = sf;
+  DB.players[currentUser].ko.final  = final2;
+  DB.players[currentUser].ko.winner = winner;
   saveDB();
   renderKoRounds();
-  toast(`R16 suggested from your ${myPicked} group predictions — adjust any pick below!`);
+  toast(`All KO rounds filled from your ${myPicked} group predictions — adjust any pick below!`);
 }
 
 // ─── AUTO-FILL R16 (admin utility) ───────────────────────────────────────────
