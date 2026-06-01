@@ -301,13 +301,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <div style="font-size:13px;opacity:.85">June 11, 9:00 PM (NL time)</div>
   </div>
 
+  <div id="pool-invite-banner" style="display:none;background:linear-gradient(135deg,var(--navy),var(--blue));border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;color:white;display:none;align-items:center;gap:12px">
+    <div style="font-size:28px" id="pool-invite-icon">💼</div>
+    <div>
+      <div style="font-size:12px;opacity:.7;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Je bent uitgenodigd voor</div>
+      <div style="font-size:16px;font-weight:700" id="pool-invite-name">—</div>
+    </div>
+  </div>
   <div id="home-login" class="card">
     <div class="card-title">Join in</div>
     <div class="field">
       <label>Your name</label>
       <input id="inp-name" placeholder="E.g. John Smith" autocomplete="off" oninput="currentUser=this.value.trim()">
     </div>
-    <div class="field">
+    <div class="field" id="pool-code-field">
       <label>Pool code <span style="color:var(--faint);font-weight:400">(optional — ask the organiser)</span></label>
       <div style="display:flex;gap:8px">
         <input id="inp-join" placeholder="E.g. WORK123" style="flex:1">
@@ -713,6 +720,7 @@ function _initFirebase(config) {
       document.getElementById('app-loading').style.display = 'none';
       const saved = localStorage.getItem('wc2026_user');
       if (saved && DB.players[saved]) { currentUser = saved; document.getElementById('inp-name').value = saved; showDashboard(); }
+      applyInviteLink();
       startCountdown();
     } else {
       if (currentUser) updateDashboard();
@@ -831,6 +839,22 @@ function showDashboard() {
   document.getElementById('home-dash').style.display  = 'block';
   updateNavUser();
   updateDashboard();
+}
+
+function applyInviteLink() {
+  const code = new URLSearchParams(window.location.search).get('pool');
+  if (!code) return;
+  const pool = DB.pools[code.toUpperCase()];
+  const inp = document.getElementById('inp-join');
+  inp.value = code.toUpperCase();
+  inp.readOnly = true;
+  inp.style.opacity = '.7';
+  document.getElementById('pool-code-field').querySelector('label').innerHTML =
+    'Pool code <span style="color:var(--faint);font-weight:400">(via uitnodigingslink)</span>';
+  const banner = document.getElementById('pool-invite-banner');
+  document.getElementById('pool-invite-name').textContent = pool ? pool.name : code.toUpperCase();
+  document.getElementById('pool-invite-icon').textContent = pool ? pool.icon : '🏆';
+  banner.style.display = 'flex';
 }
 
 function switchUser() {
