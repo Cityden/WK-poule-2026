@@ -466,9 +466,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     </div>
   </div>
   <div id="admin-panel" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
-      <span class="pill pill-green">✓ Admin unlocked</span>
-      <button class="btn btn-sm" onclick="lockAdmin()">🔒 Lock</button>
+    <div style="background:var(--red);color:#fff;border-radius:var(--radius);padding:.85rem 1rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:.5rem;font-weight:700;font-size:15px">⚙️ Admin mode</div>
+      <button class="btn btn-sm" style="border-color:rgba(255,255,255,.5);color:#fff;background:transparent" onclick="lockAdmin()">🔒 Verlaat admin</button>
     </div>
     <div class="sub-nav">
       <button class="sub-btn active" onclick="adminTab('results')" id="atab-results">Results</button>
@@ -1395,9 +1395,6 @@ function renderAdminPools() {
   const c=document.getElementById('admin-pools-list'); c.innerHTML='';
   Object.values(DB.pools).forEach(pool=>{
     const members=pool.members||[];
-    const membersHtml=members.length
-      ? members.map(m=>`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:99px;padding:3px 10px;font-size:12px;margin:2px">${makeAvatar(m,20)} ${esc(m)}</span>`).join('')
-      : '<span style="font-size:13px;color:var(--faint)">No members yet</span>';
     const card=document.createElement('div'); card.className='card';
     card.innerHTML=`
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:.75rem">
@@ -1405,23 +1402,49 @@ function renderAdminPools() {
           <div class="pool-icon">${pool.icon}</div>
           <div>
             <div style="font-weight:600">${esc(pool.name)}</div>
-            <div style="font-size:13px;color:var(--muted)">${members.length} member${members.length!==1?'s':''}</div>
+            <div style="font-size:13px;color:var(--muted)">${members.length} deelnemer${members.length!==1?'s':''}</div>
           </div>
         </div>
         <button class="btn btn-sm" style="color:var(--red);border-color:var(--red);flex-shrink:0" onclick="deletePool('${pool.code}')">🗑 Delete</button>
       </div>
-      <div style="margin-bottom:.75rem">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px">Members</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px">${membersHtml}</div>
-      </div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Share this code:</div>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:.75rem">
         <div style="flex:1;padding:8px 12px;background:var(--bg);border-radius:var(--radius-sm);font-family:'DM Mono',monospace;font-size:16px;font-weight:500;letter-spacing:.1em">${pool.code}</div>
         <button class="btn btn-sm" onclick="navigator.clipboard.writeText(location.origin+location.pathname+'?pool=${pool.code}').then(()=>toast('Link gekopieerd!'))">🔗 Kopieer link</button>
-      </div>`;
+      </div>
+      <button class="btn btn-sm" style="width:100%" onclick="togglePoolStandings('${pool.code}')">📊 Bekijk standings</button>
+      <div id="pool-standings-${pool.code}" style="display:none;margin-top:.75rem"></div>`;
     c.appendChild(card);
   });
   if(!Object.keys(DB.pools).length) c.innerHTML='<div style="color:var(--muted);font-size:14px">No pools created yet.</div>';
+}
+
+function togglePoolStandings(code) {
+  const el=document.getElementById('pool-standings-'+code);
+  if(!el) return;
+  if(el.style.display!=='none'){ el.style.display='none'; return; }
+  const members=(DB.pools[code]&&DB.pools[code].members)||[];
+  if(!members.length){ el.innerHTML='<div style="font-size:13px;color:var(--muted);padding:.5rem 0">Nog geen deelnemers.</div>'; el.style.display='block'; return; }
+  const medals=['🥇','🥈','🥉'];
+  const ranked=members.map(p=>({
+    name:p, pts:calcPoints(p), pct:filledPct(p),
+    winner:(DB.players[p]&&DB.players[p].ko&&DB.players[p].ko.winner&&DB.players[p].ko.winner[0])||'—'
+  })).sort((a,b)=>b.pts-a.pts||b.pct-a.pct);
+  const rows=ranked.map((p,i)=>`
+    <div style="display:grid;grid-template-columns:28px 1fr 52px 48px;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:13px;text-align:center;color:var(--muted)">${medals[i]||(i+1)}</div>
+      <div style="display:flex;align-items:center;gap:7px">${makeAvatar(p.name,26)}<span style="font-size:13px;font-weight:500">${esc(p.name)}</span></div>
+      <div style="font-size:14px;font-weight:700;color:var(--navy);text-align:right;font-family:'DM Mono',monospace">${p.pts}</div>
+      <div style="font-size:12px;color:var(--muted);text-align:right">${p.pct}%</div>
+    </div>`).join('');
+  el.innerHTML=`
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px">Standings</div>
+    <div style="display:grid;grid-template-columns:28px 1fr 52px 48px;gap:8px;padding-bottom:6px;border-bottom:2px solid var(--border)">
+      <div></div>
+      <div style="font-size:11px;color:var(--muted)">Speler</div>
+      <div style="font-size:11px;color:var(--muted);text-align:right">Pts</div>
+      <div style="font-size:11px;color:var(--muted);text-align:right">%</div>
+    </div>${rows}`;
+  el.style.display='block';
 }
 
 function renderAdminPlayers() {
