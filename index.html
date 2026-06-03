@@ -475,6 +475,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <button class="sub-btn"        onclick="adminTab('ko')"      id="atab-ko">Knockout</button>
       <button class="sub-btn"        onclick="adminTab('bonus')"   id="atab-bonus">Bonus</button>
       <button class="sub-btn"        onclick="adminTab('pools')"   id="atab-pools">Pools</button>
+      <button class="sub-btn"        onclick="adminTab('players')" id="atab-players">Players</button>
     </div>
     <div id="atab-results-cnt"><div class="group-grid" id="admin-result-cards"></div></div>
     <div id="atab-ko-cnt" style="display:none"><div id="admin-ko-rounds"></div></div>
@@ -498,6 +499,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       </div>
       <div id="admin-pools-list"></div>
     </div>
+    <div id="atab-players-cnt" style="display:none"><div id="admin-players-list"></div></div>
     <div class="save-bar" id="admin-save-bar">
       <button class="btn btn-primary" onclick="saveAdmin()">💾 Save &amp; recalculate</button>
       <div class="saved-ok" id="admin-saved">✓ Saved</div>
@@ -1010,8 +1012,6 @@ function filledPct(player) {
     const picks=(pd.ko&&pd.ko[r.key])||[];
     for(let i=0;i<r.slots;i++){ if(picks[i]) f++; }
   });
-  total += BONUS.length;
-  BONUS.forEach(q=>{ if(pd.bonus&&pd.bonus[q.key]!=null&&pd.bonus[q.key]!=='') f++; });
   return Math.round(f/total*100);
 }
 
@@ -1288,11 +1288,12 @@ function lockAdmin() {
 }
 
 function adminTab(tab) {
-  ['results','ko','bonus','pools'].forEach(t=>{
+  ['results','ko','bonus','pools','players'].forEach(t=>{
     document.getElementById('atab-'+t+'-cnt').style.display=t===tab?'block':'none';
     document.getElementById('atab-'+t).classList.toggle('active',t===tab);
   });
-  document.getElementById('admin-save-bar').style.display=tab==='pools'?'none':'flex';
+  document.getElementById('admin-save-bar').style.display=(tab==='pools'||tab==='players')?'none':'flex';
+  if(tab==='players') renderAdminPlayers();
 }
 
 function renderAdminResults() {
@@ -1402,6 +1403,36 @@ function renderAdminPools() {
     c.appendChild(card);
   });
   if(!Object.keys(DB.pools).length) c.innerHTML='<div style="color:var(--muted);font-size:14px">No pools created yet.</div>';
+}
+
+function renderAdminPlayers() {
+  const c=document.getElementById('admin-players-list'); c.innerHTML='';
+  const players=Object.keys(DB.players);
+  if(!players.length){ c.innerHTML='<div style="color:var(--muted);font-size:14px;padding:1rem">No players yet.</div>'; return; }
+  const ranked=players.map(p=>({
+    name:p, pts:calcPoints(p), pct:filledPct(p),
+    winner:(DB.players[p].ko&&DB.players[p].ko.winner&&DB.players[p].ko.winner[0])||'—'
+  })).sort((a,b)=>b.pts-a.pts||b.pct-a.pct);
+
+  const medals=['🥇','🥈','🥉'];
+  const rows=ranked.map((p,i)=>`
+    <div style="display:grid;grid-template-columns:32px 1fr 60px 60px 120px;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:14px;text-align:center;color:var(--muted)">${medals[i]||(i+1)}</div>
+      <div style="display:flex;align-items:center;gap:8px">${makeAvatar(p.name,28)}<span style="font-size:14px;font-weight:500">${esc(p.name)}</span></div>
+      <div style="font-size:15px;font-weight:700;color:var(--navy);text-align:right;font-family:'DM Mono',monospace">${p.pts}</div>
+      <div style="font-size:12px;color:var(--muted);text-align:right">${p.pct}%</div>
+      <div style="font-size:12px;color:var(--muted)">${p.winner!=='—'?(COUNTRIES[p.winner]?COUNTRIES[p.winner].flag:'')+' '+esc(p.winner):'—'}</div>
+    </div>`).join('');
+
+  c.innerHTML=`<div class="card">
+    <div style="display:grid;grid-template-columns:32px 1fr 60px 60px 120px;gap:8px;padding-bottom:8px;border-bottom:2px solid var(--border);margin-bottom:2px">
+      <div></div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Player</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:right">Pts</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:right">Filled</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Winner pick</div>
+    </div>${rows}
+  </div>`;
 }
 
 function pickAdminIcon(el, icon) {
