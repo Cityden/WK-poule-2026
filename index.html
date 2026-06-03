@@ -312,7 +312,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <div class="card-title">Join in</div>
     <div class="field">
       <label>Your name</label>
-      <input id="inp-name" placeholder="E.g. John Smith" autocomplete="off" oninput="currentUser=this.value.trim()">
+      <input id="inp-name" placeholder="E.g. John Smith" autocomplete="off" oninput="onNameInput()">
+    </div>
+    <div class="field">
+      <label id="pin-label">Choose a PIN</label>
+      <input id="inp-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off" onkeydown="if(event.key==='Enter')enterApp()">
+      <div id="pin-hint" style="font-size:12px;color:var(--muted);margin-top:4px">4–6 digits — remember this!</div>
     </div>
     <div class="field" id="pool-code-field">
       <label>Pool code <span style="color:var(--faint);font-weight:400">(optional — ask the organiser)</span></label>
@@ -882,11 +887,39 @@ document.getElementById('logo-click').addEventListener('click', () => {
 });
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
+function onNameInput() {
+  const name = document.getElementById('inp-name').value.trim();
+  const label = document.getElementById('pin-label');
+  const hint  = document.getElementById('pin-hint');
+  if (DB.players[name] && DB.players[name].pin) {
+    label.textContent = 'Your PIN';
+    hint.textContent  = 'Enter your PIN to access your account.';
+  } else if (DB.players[name]) {
+    label.textContent = 'Choose a PIN';
+    hint.textContent  = 'Name recognised — set a PIN to protect your account.';
+  } else {
+    label.textContent = 'Choose a PIN';
+    hint.textContent  = '4–6 digits — remember this!';
+  }
+}
+
 function enterApp() {
   const name = document.getElementById('inp-name').value.trim();
+  const pin  = document.getElementById('inp-pin').value.trim();
   if (!name) { toast('Please enter your name.', true); return; }
+  if (!pin)  { toast('Please enter a PIN.', true); return; }
+  if (!/^\d{4,6}$/.test(pin)) { toast('PIN must be 4–6 digits.', true); return; }
+
+  const existing = DB.players[name];
+  if (existing && existing.pin && existing.pin !== pin) {
+    toast('Wrong PIN — try again.', true);
+    return;
+  }
+
   currentUser = name;
   if (!DB.players[currentUser]) DB.players[currentUser] = {scores:{},ko:{},bonus:{}};
+  if (!DB.players[currentUser].pin) DB.players[currentUser].pin = pin;
+
   const code = document.getElementById('inp-join').value.trim().toUpperCase();
   if (code) joinPool(code, true);
   saveDB();
@@ -920,9 +953,12 @@ function applyInviteLink() {
 
 function switchUser() {
   currentUser='';
+  localStorage.removeItem('wc2026_user');
   document.getElementById('home-login').style.display='block';
   document.getElementById('home-dash').style.display='none';
   document.getElementById('inp-name').value='';
+  document.getElementById('inp-pin').value='';
+  onNameInput();
   document.getElementById('nav-user').style.display='none';
   nav('info');
 }
