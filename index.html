@@ -774,8 +774,11 @@ function _initFirebase(config) {
       const savedScores = currentUser && DB.players && DB.players[currentUser] && DB.players[currentUser].scores;
       DB = data;
       ['players','results','koResults','bonusAnswers','pools'].forEach(k => { if (!DB[k]) DB[k] = {}; });
-      if (savedScores && currentUser && DB.players[currentUser]) {
-        Object.assign(DB.players[currentUser].scores, savedScores);
+      if (currentUser && DB.players[currentUser]) {
+        if (!DB.players[currentUser].scores) DB.players[currentUser].scores = {};
+        if (!DB.players[currentUser].ko)     DB.players[currentUser].ko     = {};
+        if (!DB.players[currentUser].bonus)  DB.players[currentUser].bonus  = {};
+        if (savedScores) Object.assign(DB.players[currentUser].scores, savedScores);
       }
     }
     if (!_dbReady) {
@@ -920,8 +923,11 @@ function enterApp() {
   }
 
   currentUser = name;
-  if (!DB.players[currentUser]) DB.players[currentUser] = {scores:{},ko:{},bonus:{}};
-  if (!DB.players[currentUser].pin) DB.players[currentUser].pin = pin;
+  if (!DB.players[currentUser])         DB.players[currentUser] = {};
+  if (!DB.players[currentUser].scores)  DB.players[currentUser].scores = {};
+  if (!DB.players[currentUser].ko)      DB.players[currentUser].ko = {};
+  if (!DB.players[currentUser].bonus)   DB.players[currentUser].bonus = {};
+  if (!DB.players[currentUser].pin)     DB.players[currentUser].pin = pin;
 
   const code = document.getElementById('inp-join').value.trim().toUpperCase();
   if (code) joinPool(code, true);
