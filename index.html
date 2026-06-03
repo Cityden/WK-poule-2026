@@ -771,7 +771,9 @@ function _initFirebase(config) {
   _DB_REF.on('value', snapshot => {
     const data = snapshot.val();
     if (data) {
-      const savedScores = currentUser && DB.players && DB.players[currentUser] && DB.players[currentUser].scores;
+      const savedScores = currentUser && DB.players?.[currentUser]?.scores;
+      const savedBonus  = currentUser && DB.players?.[currentUser]?.bonus;
+      const savedKo     = currentUser && DB.players?.[currentUser]?.ko;
       DB = data;
       ['players','results','koResults','bonusAnswers','pools'].forEach(k => { if (!DB[k]) DB[k] = {}; });
       if (currentUser && DB.players[currentUser]) {
@@ -779,6 +781,8 @@ function _initFirebase(config) {
         if (!DB.players[currentUser].ko)     DB.players[currentUser].ko     = {};
         if (!DB.players[currentUser].bonus)  DB.players[currentUser].bonus  = {};
         if (savedScores) Object.assign(DB.players[currentUser].scores, savedScores);
+        if (savedBonus)  Object.assign(DB.players[currentUser].bonus,  savedBonus);
+        if (savedKo)     Object.assign(DB.players[currentUser].ko,     savedKo);
       }
     }
     if (!_dbReady) {
