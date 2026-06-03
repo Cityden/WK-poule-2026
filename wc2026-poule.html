@@ -579,7 +579,7 @@ const KO_ROUNDS = [
 ];
 
 const BONUS = [
-  { key: 'b1', label: 'Which country scores the most goals in the group stage?',       pts: 10 },
+  { key: 'b1', label: 'Which country scores the most goals in the group stage?',       pts: 10, type: 'country' },
   { key: 'b2', label: 'Total goals scored in the tournament? (within 5 = correct)',    pts: 10, type: 'number' },
   { key: 'b3', label: 'Golden Boot — which player wins the top scorer award?',         pts: 10 },
   { key: 'b4', label: 'Will the final go to extra time or penalties?',                 pts: 10, opts: ['Yes','No'] },
@@ -826,16 +826,23 @@ function renderBonusForm() {
   BONUS.forEach(q => {
     const div = document.createElement('div'); div.className = 'bonus-row';
     div.innerHTML = `<div class="bonus-q-text">${q.label}<span class="bonus-pts-tag">${q.pts} pts</span></div>`;
-    if (q.opts) {
+    const saved = (pd.bonus && pd.bonus[q.key]) || '';
+    const k = q.key;
+    if (q.type === 'country') {
       const sel = document.createElement('select'); sel.className = 'bonus-inp';
-      sel.innerHTML = '<option value="">— select —</option>' + q.opts.map(o => `<option value="${o}"${(pd.bonus && pd.bonus[q.key]) === o ? ' selected' : ''}>${o}</option>`).join('');
-      const k = q.key; sel.onchange = function () { DB.players[currentUser].bonus[k] = this.value; };
+      sel.innerHTML = '<option value="">— choose country —</option>' + ALL_TEAMS.map(n => `<option value="${n}"${saved === n ? ' selected' : ''}>${n}</option>`).join('');
+      sel.onchange = function () { DB.players[currentUser].bonus[k] = this.value; saveDB(); };
+      div.appendChild(sel);
+    } else if (q.opts) {
+      const sel = document.createElement('select'); sel.className = 'bonus-inp';
+      sel.innerHTML = '<option value="">— select —</option>' + q.opts.map(o => `<option value="${o}"${saved === o ? ' selected' : ''}>${o}</option>`).join('');
+      sel.onchange = function () { DB.players[currentUser].bonus[k] = this.value; };
       div.appendChild(sel);
     } else {
       const inp = document.createElement('input'); inp.className = 'bonus-inp';
-      inp.type = q.type || 'text'; inp.placeholder = 'Your answer...';
-      inp.value = (pd.bonus && pd.bonus[q.key]) || '';
-      const k = q.key; inp.onchange = function () { DB.players[currentUser].bonus[k] = this.value; };
+      inp.type = q.type === 'number' ? 'number' : 'text'; inp.min = '0'; inp.placeholder = q.type === 'number' ? '0' : 'Your answer...';
+      inp.value = saved;
+      inp.onchange = function () { DB.players[currentUser].bonus[k] = this.value; };
       div.appendChild(inp);
     }
     c.appendChild(div);
@@ -1041,16 +1048,23 @@ function renderAdminBonus() {
   BONUS.forEach(q => {
     const div = document.createElement('div'); div.className = 'bonus-row';
     div.innerHTML = `<div class="bonus-q-text" style="font-size:13px">${q.label}</div>`;
-    if (q.opts) {
+    const saved = (DB.bonusAnswers && DB.bonusAnswers[q.key]) || '';
+    const k = q.key;
+    if (q.type === 'country') {
       const sel = document.createElement('select'); sel.className = 'bonus-inp';
-      sel.innerHTML = '<option value="">— correct answer —</option>' + q.opts.map(o => `<option value="${o}"${(DB.bonusAnswers && DB.bonusAnswers[q.key]) === o ? ' selected' : ''}>${o}</option>`).join('');
-      const k = q.key; sel.onchange = function () { DB.bonusAnswers[k] = this.value; };
+      sel.innerHTML = '<option value="">— correct answer —</option>' + ALL_TEAMS.map(n => `<option value="${n}"${saved === n ? ' selected' : ''}>${n}</option>`).join('');
+      sel.onchange = function () { DB.bonusAnswers[k] = this.value; };
+      div.appendChild(sel);
+    } else if (q.opts) {
+      const sel = document.createElement('select'); sel.className = 'bonus-inp';
+      sel.innerHTML = '<option value="">— correct answer —</option>' + q.opts.map(o => `<option value="${o}"${saved === o ? ' selected' : ''}>${o}</option>`).join('');
+      sel.onchange = function () { DB.bonusAnswers[k] = this.value; };
       div.appendChild(sel);
     } else {
       const inp = document.createElement('input'); inp.className = 'bonus-inp';
-      inp.type = q.type || 'text'; inp.placeholder = 'Correct answer...';
-      inp.value = (DB.bonusAnswers && DB.bonusAnswers[q.key]) || '';
-      const k = q.key; inp.onchange = function () { DB.bonusAnswers[k] = this.value; };
+      inp.type = q.type === 'number' ? 'number' : 'text'; inp.min = '0'; inp.placeholder = q.type === 'number' ? '0' : 'Correct answer...';
+      inp.value = saved;
+      inp.onchange = function () { DB.bonusAnswers[k] = this.value; };
       div.appendChild(inp);
     }
     c.appendChild(div);
