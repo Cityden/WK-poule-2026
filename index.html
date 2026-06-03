@@ -1012,6 +1012,8 @@ function filledPct(player) {
     const picks=(pd.ko&&pd.ko[r.key])||[];
     for(let i=0;i<r.slots;i++){ if(picks[i]) f++; }
   });
+  total += BONUS.length;
+  BONUS.forEach(q=>{ if(pd.bonus&&pd.bonus[q.key]!=null&&pd.bonus[q.key]!=='') f++; });
   return Math.round(f/total*100);
 }
 
