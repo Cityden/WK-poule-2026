@@ -502,6 +502,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <div id="atab-players-cnt" style="display:none"><div id="admin-players-list"></div></div>
     <div class="save-bar" id="admin-save-bar">
       <button class="btn btn-primary" onclick="saveAdmin()">💾 Save &amp; recalculate</button>
+      <button class="btn btn-sm" style="color:var(--red);border-color:var(--red)" onclick="clearAllResults()">🗑 Delete all results</button>
       <div class="saved-ok" id="admin-saved">✓ Saved</div>
     </div>
   </div>
@@ -1477,6 +1478,16 @@ function saveAdmin() {
   saveDB();
   const el=document.getElementById('admin-saved'); el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500);
   toast('Results saved. Points recalculated.');
+}
+
+function clearAllResults() {
+  if (!confirm('Delete ALL entered results, KO results and bonus answers? This cannot be undone.')) return;
+  DB.results = {};
+  DB.koResults = {};
+  DB.bonusAnswers = {};
+  saveDB();
+  renderAdminResults(); renderAdminKo(); renderAdminBonus();
+  toast('All results cleared.');
 }
 
 // ─── AUTO-FILL GROUP STAGE ────────────────────────────────────────────────────
