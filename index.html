@@ -893,12 +893,15 @@ function onNameInput() {
   const hint  = document.getElementById('pin-hint');
   if (DB.players[name] && DB.players[name].pin) {
     label.textContent = 'Your PIN';
-    hint.textContent  = 'Enter your PIN to access your account.';
+    hint.style.color  = 'var(--red)';
+    hint.textContent  = '⚠️ This name is already taken. Is this you? Enter your PIN. Otherwise choose a different name.';
   } else if (DB.players[name]) {
     label.textContent = 'Choose a PIN';
+    hint.style.color  = 'var(--muted)';
     hint.textContent  = 'Name recognised — set a PIN to protect your account.';
   } else {
     label.textContent = 'Choose a PIN';
+    hint.style.color  = 'var(--muted)';
     hint.textContent  = '4–6 digits — remember this!';
   }
 }
@@ -912,7 +915,7 @@ function enterApp() {
 
   const existing = DB.players[name];
   if (existing && existing.pin && existing.pin !== pin) {
-    toast('Wrong PIN — try again.', true);
+    toast('This name is already taken and the PIN is incorrect. Please choose a different name.', true);
     return;
   }
 
