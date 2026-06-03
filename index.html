@@ -737,9 +737,9 @@ const KO_ROUNDS = [
 ];
 
 const BONUS = [
-  {key:'b1',label:'Which country scores the most goals in the group stage?',pts:10},
+  {key:'b1',label:'Which country scores the most goals in the group stage?',pts:10,type:'country'},
   {key:'b2',label:'How many goals are scored in the final? (±1 is correct)',pts:10,type:'number',tol:1},
-  {key:'b3',label:'Which country wins the tournament?',pts:10},
+  {key:'b3',label:'Which country wins the tournament?',pts:10,type:'country'},
   {key:'b4',label:'Does the final go to extra time or penalties?',pts:10,opts:['Yes','No']},
   {key:'b5',label:'How many goals are scored in the group stage in total? (±10 is correct)',pts:10,type:'number',tol:10},
   {key:'b6',label:'Which group scores the most goals?',pts:10,opts:['A','B','C','D','E','F','G','H','I','J','K','L']},
@@ -1201,16 +1201,24 @@ function renderBonusForm() {
   BONUS.forEach(q=>{
     const div=document.createElement('div'); div.className='bonus-row';
     div.innerHTML=`<div class="bonus-q">${q.label}<span class="bonus-pts">+${q.pts} pts</span></div>`;
-    if(q.opts){
+    const saved=(pd.bonus&&pd.bonus[q.key])||'';
+    const k=q.key;
+    if(q.type==='country'){
       const sel=document.createElement('select'); sel.className='bonus-inp'; sel.disabled=locked;
-      sel.innerHTML='<option value="">— choose —</option>'+q.opts.map(o=>`<option value="${o}"${(pd.bonus&&pd.bonus[q.key])===o?' selected':''}>${o}</option>`).join('');
-      const k=q.key; sel.onchange=function(){DB.players[currentUser].bonus[k]=this.value;saveDB();};
+      const countryNames=Object.keys(COUNTRIES).sort((a,b)=>a.localeCompare(b));
+      sel.innerHTML='<option value="">— choose country —</option>'+countryNames.map(n=>`<option value="${n}"${saved===n?' selected':''}>${COUNTRIES[n].flag} ${n}</option>`).join('');
+      sel.onchange=function(){DB.players[currentUser].bonus[k]=this.value;saveDB();updateProgressBar();};
+      div.appendChild(sel);
+    } else if(q.opts){
+      const sel=document.createElement('select'); sel.className='bonus-inp'; sel.disabled=locked;
+      sel.innerHTML='<option value="">— choose —</option>'+q.opts.map(o=>`<option value="${o}"${saved===o?' selected':''}>${o}</option>`).join('');
+      sel.onchange=function(){DB.players[currentUser].bonus[k]=this.value;saveDB();};
       div.appendChild(sel);
     } else {
       const inp=document.createElement('input'); inp.className='bonus-inp';
-      inp.type=q.type||'text'; inp.placeholder='Your answer…'; inp.disabled=locked;
-      inp.value=(pd.bonus&&pd.bonus[q.key])||'';
-      const k=q.key; inp.onchange=function(){DB.players[currentUser].bonus[k]=this.value;saveDB();};
+      inp.type=q.type==='number'?'number':'text'; inp.min='0'; inp.placeholder='0'; inp.disabled=locked;
+      inp.value=saved;
+      inp.onchange=function(){DB.players[currentUser].bonus[k]=this.value;saveDB();};
       div.appendChild(inp);
     }
     c.appendChild(div);
@@ -1349,16 +1357,24 @@ function renderAdminBonus() {
   BONUS.forEach(q=>{
     const div=document.createElement('div'); div.className='bonus-row';
     div.innerHTML=`<div class="bonus-q" style="font-size:13px">${q.label}</div>`;
-    if(q.opts){
+    const saved=(DB.bonusAnswers&&DB.bonusAnswers[q.key])||'';
+    const k=q.key;
+    if(q.type==='country'){
       const sel=document.createElement('select'); sel.className='bonus-inp';
-      sel.innerHTML='<option value="">— correct answer —</option>'+q.opts.map(o=>`<option value="${o}"${(DB.bonusAnswers&&DB.bonusAnswers[q.key])===o?' selected':''}>${o}</option>`).join('');
-      const k=q.key; sel.onchange=function(){DB.bonusAnswers[k]=this.value;};
+      const countryNames=Object.keys(COUNTRIES).sort((a,b)=>a.localeCompare(b));
+      sel.innerHTML='<option value="">— correct answer —</option>'+countryNames.map(n=>`<option value="${n}"${saved===n?' selected':''}>${COUNTRIES[n].flag} ${n}</option>`).join('');
+      sel.onchange=function(){DB.bonusAnswers[k]=this.value;};
+      div.appendChild(sel);
+    } else if(q.opts){
+      const sel=document.createElement('select'); sel.className='bonus-inp';
+      sel.innerHTML='<option value="">— correct answer —</option>'+q.opts.map(o=>`<option value="${o}"${saved===o?' selected':''}>${o}</option>`).join('');
+      sel.onchange=function(){DB.bonusAnswers[k]=this.value;};
       div.appendChild(sel);
     } else {
       const inp=document.createElement('input'); inp.className='bonus-inp';
-      inp.type=q.type||'text'; inp.placeholder='Correct answer…';
-      inp.value=(DB.bonusAnswers&&DB.bonusAnswers[q.key])||'';
-      const k=q.key; inp.onchange=function(){DB.bonusAnswers[k]=this.value;};
+      inp.type=q.type==='number'?'number':'text'; inp.min='0'; inp.placeholder='0';
+      inp.value=saved;
+      inp.onchange=function(){DB.bonusAnswers[k]=this.value;};
       div.appendChild(inp);
     }
     c.appendChild(div);
