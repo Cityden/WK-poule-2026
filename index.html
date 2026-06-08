@@ -1516,6 +1516,7 @@ function renderAdminPlayers() {
       <div style="display:flex;align-items:center;gap:6px">
         ${DB.players[p.name]&&DB.players[p.name].pin ? '<span style="font-size:11px;color:var(--green)">🔒 PIN set</span>' : '<span style="font-size:11px;color:var(--red)">⚠️ No PIN</span>'}
         <button class="btn btn-sm" style="font-size:11px;white-space:nowrap" onclick="adminResetPin(${JSON.stringify(p.name)})">Reset PIN</button>
+        <button class="btn btn-sm" style="font-size:11px;white-space:nowrap;color:var(--red);border-color:var(--red)" onclick="adminDeletePlayer(${JSON.stringify(p.name)})">🗑 Verwijder</button>
       </div>
     </div>`).join('');
 
@@ -1538,6 +1539,18 @@ function adminResetPin(playerName) {
   saveDB();
   renderAdminPlayers();
   toast(`PIN van ${playerName} is gewist — speler kiest zelf een nieuwe.`);
+}
+
+function adminDeletePlayer(playerName) {
+  if (!confirm(`Speler "${playerName}" verwijderen?\n\nAlle picks, punten en poollidmaatschappen worden gewist. Dit kan niet ongedaan worden gemaakt.`)) return;
+  delete DB.players[playerName];
+  Object.values(DB.pools).forEach(pool => {
+    if (pool.members) pool.members = pool.members.filter(m => m !== playerName);
+  });
+  saveDB();
+  renderAdminPlayers();
+  renderLeaderboard();
+  toast(`${playerName} is verwijderd.`);
 }
 
 function pickAdminIcon(el, icon) {
