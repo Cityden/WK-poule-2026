@@ -1507,23 +1507,37 @@ function renderAdminPlayers() {
 
   const medals=['🥇','🥈','🥉'];
   const rows=ranked.map((p,i)=>`
-    <div style="display:grid;grid-template-columns:32px 1fr 60px 60px 120px;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)">
+    <div style="display:grid;grid-template-columns:32px 1fr 60px 60px 120px auto;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)">
       <div style="font-size:14px;text-align:center;color:var(--muted)">${medals[i]||(i+1)}</div>
       <div style="display:flex;align-items:center;gap:8px">${makeAvatar(p.name,28)}<span style="font-size:14px;font-weight:500">${esc(p.name)}</span></div>
       <div style="font-size:15px;font-weight:700;color:var(--navy);text-align:right;font-family:'DM Mono',monospace">${p.pts}</div>
       <div style="font-size:12px;color:var(--muted);text-align:right">${p.pct}%</div>
       <div style="font-size:12px;color:var(--muted)">${p.winner!=='—'?(COUNTRIES[p.winner]?COUNTRIES[p.winner].flag:'')+' '+esc(p.winner):'—'}</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        ${DB.players[p.name]&&DB.players[p.name].pin ? '<span style="font-size:11px;color:var(--green)">🔒 PIN set</span>' : '<span style="font-size:11px;color:var(--red)">⚠️ No PIN</span>'}
+        <button class="btn btn-sm" style="font-size:11px;white-space:nowrap" onclick="adminResetPin(${JSON.stringify(p.name)})">Reset PIN</button>
+      </div>
     </div>`).join('');
 
   c.innerHTML=`<div class="card">
-    <div style="display:grid;grid-template-columns:32px 1fr 60px 60px 120px;gap:8px;padding-bottom:8px;border-bottom:2px solid var(--border);margin-bottom:2px">
+    <div style="display:grid;grid-template-columns:32px 1fr 60px 60px 120px auto;gap:8px;padding-bottom:8px;border-bottom:2px solid var(--border);margin-bottom:2px">
       <div></div>
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Player</div>
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:right">Pts</div>
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:right">Filled</div>
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Winner pick</div>
+      <div></div>
     </div>${rows}
   </div>`;
+}
+
+function adminResetPin(playerName) {
+  if (!confirm(`PIN van "${playerName}" wissen?\n\nDe speler wordt gevraagd een nieuwe PIN te kiezen bij de volgende login.`)) return;
+  if (!DB.players[playerName]) { toast('Speler niet gevonden.', true); return; }
+  delete DB.players[playerName].pin;
+  saveDB();
+  renderAdminPlayers();
+  toast(`PIN van ${playerName} is gewist — speler kiest zelf een nieuwe.`);
 }
 
 function pickAdminIcon(el, icon) {
