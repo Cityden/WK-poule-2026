@@ -328,6 +328,21 @@
   .saved-label { font-size: 13px; color: var(--green); opacity: 0; transition: opacity .3s; display: flex; align-items: center; gap: 5px; }
   .saved-label.show { opacity: 1; }
 
+  /* ── Deadline banner ── */
+  .deadline-banner {
+    background: var(--amber-bg);
+    border: 1px solid rgba(180,83,9,.2);
+    border-radius: var(--radius-sm);
+    padding: .75rem 1rem;
+    font-size: 13px; color: var(--amber-text);
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .deadline-banner i { font-size: 16px; flex-shrink: 0; }
+  .score-inp:disabled, .ko-slots select:disabled, .bonus-inp:disabled {
+    opacity: 0.6; cursor: not-allowed; background: var(--surface2);
+  }
+
   /* ── Tabs (sub-nav) ── */
   .sub-nav {
     display: flex; gap: 2px;
@@ -438,7 +453,11 @@
     <!-- PICKS -->
     <div id="view-picks" class="view">
       <p class="page-title">My picks</p>
-      <p class="page-sub">Predict every match and fill in your knockout picks before the deadline.</p>
+      <p class="page-sub" id="picks-sub">Predict every match and fill in your knockout picks before the deadline.</p>
+      <div id="picks-locked-banner" class="deadline-banner" style="display:none">
+        <i class="ti ti-lock"></i>
+        <span>The deadline has passed — you can view your picks, but changes are no longer possible.</span>
+      </div>
       <div class="progress-wrap"><div class="progress-fill" id="picks-bar" style="width:0%"></div></div>
       <div class="sub-nav">
         <button class="sub-btn active" onclick="pickTab('group')" id="ptab-group">Group stage</button>
@@ -448,7 +467,7 @@
       <div id="ptab-group-cnt"><div class="group-grid" id="group-cards"></div></div>
       <div id="ptab-knockout-cnt" style="display:none"><div id="ko-rounds"></div></div>
       <div id="ptab-bonus-cnt" style="display:none"><div class="card" id="bonus-card"></div></div>
-      <div class="save-bar">
+      <div class="save-bar" id="picks-save-bar">
         <button class="btn btn-primary" onclick="savePicks()"><i class="ti ti-device-floppy"></i> Save picks</button>
         <div class="saved-label" id="picks-saved"><i class="ti ti-check"></i> Saved</div>
       </div>
@@ -538,6 +557,11 @@
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const ADMIN_PASSWORD = 'wc2026'; // Change this before going live!
+const PICKS_DEADLINE = new Date('2026-06-11T18:00:00+02:00'); // 11 juni 18:00 Amsterdam-tijd
+
+function picksAreLocked() {
+  return new Date() >= PICKS_DEADLINE;
+}
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const WC_GROUPS = {
@@ -754,6 +778,18 @@ function renderPicks() {
   renderKoRounds();
   renderBonusForm();
   updateProgressBar();
+  applyPicksLock();
+}
+
+function applyPicksLock() {
+  const locked = picksAreLocked();
+  document.getElementById('picks-locked-banner').style.display = locked ? 'flex' : 'none';
+  document.getElementById('picks-save-bar').style.display = locked ? 'none' : 'flex';
+  if (locked) {
+    document.querySelectorAll('#view-picks .score-inp, #view-picks .ko-slots select, #view-picks .bonus-inp').forEach(el => {
+      el.disabled = true;
+    });
+  }
 }
 
 function updateProgressBar() {
@@ -857,6 +893,7 @@ function pickTab(tab) {
 }
 
 function savePicks() {
+  if (picksAreLocked()) { toast('The deadline has passed. Changes are no longer possible.', true); return; }
   saveDB(); updateDashboard();
   const el = document.getElementById('picks-saved');
   el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2500);
