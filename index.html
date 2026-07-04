@@ -743,7 +743,7 @@ const KO_ROUNDS = [
 ];
 
 const BONUS = [
-  {key:'b1',label:'Which country scores the most goals in the group stage?',pts:10,type:'country'},
+  {key:'b1',label:'Which country scores the most goals in the group stage?',pts:10,type:'country',multi:true},
   {key:'b2',label:'How many goals are scored in the final? (±1 is correct)',pts:10,type:'number',tol:1},
   {key:'b3',label:'Which country wins the tournament?',pts:10,type:'country'},
   {key:'b4',label:'Does the final go to extra time or penalties?',pts:10,opts:['Yes','No']},
@@ -1047,6 +1047,7 @@ function calcPoints(player) {
     if(!ans||!correct) return;
     if(q.type==='number') { const tol=q.tol??5; if(Math.abs(+ans-+correct)<=tol) pts+=q.pts; }
     else if(q.opts) { if(ans.trim().toLowerCase()===correct.trim().toLowerCase()) pts+=q.pts; }
+    else if(q.multi) { const list=correct.split(',').map(s=>normalizeCountry(s.trim())); if(list.includes(normalizeCountry(ans))) pts+=q.pts; }
     else if(normalizeCountry(ans)===normalizeCountry(correct)) pts+=q.pts;
   });
   return pts;
@@ -1409,7 +1410,25 @@ function renderAdminBonus() {
     div.innerHTML=`<div class="bonus-q" style="font-size:13px">${q.label}</div>`;
     const saved=(DB.bonusAnswers&&DB.bonusAnswers[q.key])||'';
     const k=q.key;
-    if(q.type==='country'){
+    if(q.type==='country'&&q.multi){
+      const savedList=saved?saved.split(',').map(s=>s.trim()):[];
+      const countryNames=Object.keys(COUNTRIES).sort((a,b)=>a.localeCompare(b));
+      const wrap=document.createElement('div');
+      wrap.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;max-height:180px;overflow-y:auto;padding:4px 0';
+      countryNames.forEach(n=>{
+        const lbl=document.createElement('label');
+        lbl.style.cssText='display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;white-space:nowrap;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:white';
+        const cb=document.createElement('input'); cb.type='checkbox'; cb.value=n;
+        cb.checked=savedList.includes(n);
+        cb.onchange=function(){
+          const checked=Array.from(wrap.querySelectorAll('input:checked')).map(i=>i.value);
+          DB.bonusAnswers[k]=checked.join(',');
+        };
+        lbl.appendChild(cb); lbl.append(' '+COUNTRIES[n].flag+' '+n);
+        wrap.appendChild(lbl);
+      });
+      div.appendChild(wrap);
+    } else if(q.type==='country'){
       const sel=document.createElement('select'); sel.className='bonus-inp';
       const countryNames=Object.keys(COUNTRIES).sort((a,b)=>a.localeCompare(b));
       sel.innerHTML='<option value="">— correct answer —</option>'+countryNames.map(n=>`<option value="${n}"${saved===n?' selected':''}>${COUNTRIES[n].flag} ${n}</option>`).join('');
